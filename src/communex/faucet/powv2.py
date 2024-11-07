@@ -12,7 +12,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from queue import Empty
 from time import sleep
-from typing import Generic, Optional, TypeVar, cast, Any
+from typing import Generic, Optional, TypeVar, cast
 
 from Crypto.Hash import keccak
 from substrateinterface import Keypair  # type: ignore
@@ -37,8 +37,6 @@ class BlockInfo:
 
 
 class GenericQueue(Generic[T]):
-    _queue: multiprocessing.Queue[Any]
-
     # SUPER HUGE GAMBIARRA, but needed for typing without driving me crazy
     """A generic queue class that wraps the multiprocessing.Queue.
 
@@ -53,19 +51,19 @@ class GenericQueue(Generic[T]):
     """
 
     def __init__(self):
-        self._queue = multiprocessing.Queue()
+        self._queue = multiprocessing.Queue() # type: ignore
 
     def put(self, item: T, block: bool = True, timeout: float | None = None) -> None:
-        self._queue.put(item, block, timeout)
+        self._queue.put(item, block, timeout) # type: ignore
 
     def get(self, block: bool = True, timeout: float | None = None) -> T | None:
-        return self._queue.get(block, timeout)
+        return self._queue.get(block, timeout) # type: ignore
 
     def __getattr__(self, name: str):
-        return getattr(self._queue, name)
+        return getattr(self._queue, name) # type: ignore
 
     def put_nowait(self, item: T):
-        self._queue.put_nowait(item)
+        self._queue.put_nowait(item) # type: ignore
 
 
 def _terminate_workers_and_wait_for_exit(
