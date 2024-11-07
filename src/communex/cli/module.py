@@ -278,7 +278,7 @@ def serve(
     )
     app = server.get_fastapi_app()
     host = ip or "127.0.0.1"
-    uvicorn.run(app, host=host, port=port)  # type: ignore
+    uvicorn.run(app, host=host, port=port)
 
 
 @module_app.command()

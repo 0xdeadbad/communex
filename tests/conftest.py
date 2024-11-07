@@ -13,8 +13,8 @@ class InvokeCli(Protocol):
 @pytest.fixture()
 def invoke_cli() -> InvokeCli:
     runner = CliRunner()
-    
+
     def invoke(command: list[str], input: str | None = None) -> Result:
         return runner.invoke(app, command, input, env={"COLUMNS": "200"})
-    
+
     return invoke
