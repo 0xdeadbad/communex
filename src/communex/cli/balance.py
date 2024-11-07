@@ -140,7 +140,7 @@ def transfer_all(ctx: Context, dest: str, min: float):
     """
 
     context = make_custom_context(ctx)
-    client = context.com_client() # type: ignore
+    client = context.com_client()
 
     keys = local_key_addresses(context)
     dest_address = resolve_key_ss58_encrypted(dest, context)
@@ -149,7 +149,7 @@ def transfer_all(ctx: Context, dest: str, min: float):
     keys = list(filter(lambda i: i[1] != dest_address, keys.items()))
 
     if len(keys) <= 0:
-        context.error(f'There is no keys you can transfer from! (note: probably your\'e trying to transfer from yourself to yourself)')
+        context.error('There is no keys you can transfer from! (note: probably your\'e trying to transfer from yourself to yourself)')
 
         raise typer.Abort()
 
