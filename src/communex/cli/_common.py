@@ -29,6 +29,8 @@ class ExtraCtxData:
     use_testnet: bool
     yes_to_all: bool
 
+    interactive: bool
+    color: bool
 
 class ExtendedContext(Context):
     obj: ExtraCtxData
@@ -73,6 +75,9 @@ class CustomCtx:
     use_yes_to_all: bool = False
     use_testnet: bool = False
 
+    interactive: bool = True
+    color: bool = True
+
     def __init__(
         self,
         ctx: ExtendedContext,
@@ -91,8 +96,11 @@ class CustomCtx:
         self.use_yes_to_all = ctx.obj.yes_to_all
         self.use_testnet = ctx.obj.use_testnet
 
-        self.console = Console()
-        self.console_err = Console(stderr = True)
+        self.interactive = ctx.obj.interactive
+        self.color = ctx.obj.color
+
+        self.console = Console(no_color = not self.color)
+        self.console_err = Console(stderr = True, no_color = not self.color)
 
     def get_use_testnet(self) -> bool:
         return self.ctx.obj.use_testnet
@@ -108,17 +116,19 @@ class CustomCtx:
             return self._com_client
 
         node_url = get_node_url(None, use_testnet = use_testnet)
-        self.info(f"Using node: {node_url}")
 
-        for _ in range(5):
-            try:
-                self._com_client = CommuneClient(
-                    url=node_url, num_connections=1, wait_for_finalization=False)
-            except Exception:
-                self.info(f"Failed to connect to node: {node_url}")
-                node_url = get_node_url(None, use_testnet=use_testnet)
-                self.info(f"Will retry with node {node_url}")
-                continue
+        with self.progress_status() as status:
+            for current in range(1, 6):
+                status.update(f'Connecting to node {node_url}...')
+
+                try:
+                    self._com_client = CommuneClient(
+                        url = node_url, num_connections = 1, wait_for_finalization = False)
+
+                    # If the code is here, it connected successfully
+                    break
+                except Exception:
+                    status.update(f'Connecting to node {node_url} ({current}/5 retries)...')
 
         if self._com_client is None:
             raise ConnectionError("Could not connect to any node")
@@ -150,7 +160,7 @@ class CustomCtx:
         message = f"ERROR: {message}"
         self.console_err.print(message, *args, style="bold red", **kwargs)  # type: ignore
 
-    def progress_status(self, message: str):
+    def progress_status(self, message: str = ''):
         return self.console_err.status(message)
 
     def confirm(self, message: str) -> bool:
