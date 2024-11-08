@@ -134,7 +134,11 @@ def transfer(ctx: Context, key: str, amount: float, dest: str):
         raise ChainTransactionError(response.error_message)  # type: ignore
 
 @balance_app.command()
-def transfer_all(ctx: Context, dest: str, min: float):
+def transfer_all(
+    ctx: Context,
+    dest: str,
+    min: Optional[float] = 0.05
+):
     """
     Transfer all balance to a specific address
     """
@@ -156,7 +160,7 @@ def transfer_all(ctx: Context, dest: str, min: float):
     if not context.confirm(f'Do you really want to transfer all from {len(keys)} key(s) to {dest_address}?'):
         raise typer.Abort()
 
-    min_value = to_nano(min)
+    min_value = to_nano(min) # type: ignore
 
     with context.progress_status('Starting transfer...') as status:
         length = len(keys)
