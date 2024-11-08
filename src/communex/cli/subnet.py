@@ -9,10 +9,10 @@ from communex.cli._common import (
     print_table_from_plain_dict,
     print_table_standardize,
 )
-from communex.compat.key import resolve_key_ss58
+from communex.compat.key import resolve_key_ss58, try_classic_load_key
 from communex.errors import ChainTransactionError
 from communex.misc import IPFS_REGEX, get_map_displayable_subnets
-from communex.types import SubnetParamsWithVoteMode, VoteMode, BurnConfiguration
+from communex.types import BurnConfiguration, SubnetParamsWithVoteMode, VoteMode
 
 subnet_app = typer.Typer(no_args_is_help=True)
 

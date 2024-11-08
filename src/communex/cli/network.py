@@ -13,9 +13,16 @@ from communex.cli._common import (
     tranform_network_params,
 )
 from communex.client import CommuneClient
-from communex.compat.key import local_key_addresses, try_classic_load_key, resolve_key_ss58
-from communex.misc import (IPFS_REGEX, get_global_params,
-                           local_keys_to_stakedbalance)
+from communex.compat.key import (
+    local_key_addresses,
+    resolve_key_ss58,
+    try_classic_load_key,
+)
+from communex.misc import (
+    IPFS_REGEX,
+    get_global_params,
+    local_keys_to_stakedbalance,
+)
 from communex.types import NetworkParamsProposalParameters
 from communex.util import convert_cid_on_proposal
 
