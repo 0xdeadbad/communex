@@ -7,7 +7,9 @@ from communex.cli.root import app
 
 
 class InvokeCli(Protocol):
-    def __call__(self, command: list[str], input: Optional[str] = None) -> Result: ...
+    def __call__(
+        self, command: list[str], input: Optional[str] = None
+    ) -> Result: ...
 
 
 @pytest.fixture()

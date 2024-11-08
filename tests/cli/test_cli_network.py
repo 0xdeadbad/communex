@@ -2,6 +2,7 @@ import re
 from string import hexdigits
 
 import pytest
+
 from tests.conftest import InvokeCli
 from tests.str_utils import clean
 
@@ -10,27 +11,26 @@ TEST_KEY_ALIAS = "dev01"
 
 def test_cli_network_last_block_slow(invoke_cli: InvokeCli):
     result = invoke_cli(["network", "last-block"])
-    
+
     assert result.exit_code == 0
     assert re.match(r"^\d+\n$", result.stdout)
-    
+
 
 def test_cli_network_last_block_hash_slow(invoke_cli: InvokeCli):
     result = invoke_cli(["network", "last-block", "--hash"])
-    
+
     def isHexHash(s):
         prefix = "0x"
-        
+
         if not s.startswith(prefix):
             return False
-        
-        s = s[len(prefix):]
-            
+
+        s = s[len(prefix) :]
+
         hex_digits = set(hexdigits)
-        
+
         return all(c in hex_digits for c in s)
-        
-    
+
     assert result.exit_code == 0
     assert isHexHash(clean(result.stdout))
 
@@ -38,10 +38,10 @@ def test_cli_network_last_block_hash_slow(invoke_cli: InvokeCli):
 def test_cli_network_list_proposals_slow(invoke_cli: InvokeCli):
     pytest.skip("Not implemented yet")
     result = invoke_cli(["network", "list-proposals"])
-    
+
     output = clean(result.stdout)
     assert result.exit_code == 0
-    
+
     assert re.search(r"Proposal id: \d+", output)
     assert "subnet_params" in output
     assert "global_params" in output
@@ -56,9 +56,9 @@ def test_cli_network_list_proposals_slow(invoke_cli: InvokeCli):
 def test_cli_network_params_slow(invoke_cli: InvokeCli):
     result = invoke_cli(["network", "params"])
     assert result.exit_code == 0
-    
+
     output = clean(result.stdout)
-    
+
     assert "max_allowed_modules" in output
     assert "max_allowed_subnets" in output
     assert "max_registrations_per_block" in output
@@ -100,19 +100,19 @@ def test_cli_network_vote_proposal_not_allowed_slow(invoke_cli: InvokeCli):
 
     assert type(result.exception).__name__ == "ChainTransactionError"
     assert "'VotingPowerIsZero'" in str(result.exception)
-    
+
 
 def test_cli_network_unvote_proposal(invoke_cli: InvokeCli):
     pytest.skip("Not implemented yet")
     result = invoke_cli(["network", "unvote-proposal"])
     assert result.exit_code == 0
-    
-    
+
+
 def test_cli_network_unvote_proposal_not_allowed_slow(invoke_cli: InvokeCli):
     """Unvote proposal is not allowed for non-registered vote."""
     result = invoke_cli(["network", "unvote-proposal", TEST_KEY_ALIAS, "0"])
-    
+
     assert result.exit_code == 1
-    
+
     assert type(result.exception).__name__ == "ChainTransactionError"
     assert "'VoterIsNotRegistered'" in str(result.exception)

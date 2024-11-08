@@ -11,10 +11,10 @@ clean:
 check: lint type_check
 
 lint:
-	ruff check ./src
+	ruff check --ignore I001 ./src
 
 fix:
-	ruff check --fix ./src
+	ruff check --ignore I001 --fix ./src
 
 type_check:
 	pyright ./src

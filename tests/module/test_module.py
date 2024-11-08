@@ -16,6 +16,8 @@ def test_module_get_endpoints():
 
     assert isinstance(endpoints["get_uppercased"], EndpointDefinition)
 
-    assert callable(endpoints['get_uppercased'].fn)
+    assert callable(endpoints["get_uppercased"].fn)
 
-    assert endpoints['get_uppercased'].fn(a_module, msg="example") == {"msg": "EXAMPLE"}
+    assert endpoints["get_uppercased"].fn(a_module, msg="example") == {
+        "msg": "EXAMPLE"
+    }

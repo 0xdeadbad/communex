@@ -120,34 +120,40 @@ def propose_globally(
     """
     context = make_custom_context(ctx)
     client = context.com_client()
-    resolved_key = try_classic_load_key(key, context)
+    resolved_key = try_classic_load_key(key)
 
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
         exit(1)
 
-    global_params = cast(NetworkParamsProposalParameters, get_global_params(client))
+    global_params = cast(
+        NetworkParamsProposalParameters, get_global_params(client)
+    )
     governance_configuration = global_params["governance_config"]
 
     global_params.update(
-        max_name_length = max_name_length,
-        min_name_length = min_name_length,
-        max_allowed_subnets = max_allowed_subnets,
-        max_allowed_modules = max_allowed_modules,
-        max_registrations_per_block = max_registrations_per_block,
-        max_allowed_weights = max_allowed_weights,
-        floor_delegation_fee = floor_delegation_fee,
-        floor_founder_share = floor_founder_share,
-        min_weight_stake = min_weight_stake,
-        curator = resolve_key_ss58(curator),
-        general_subnet_application_cost = general_subnet_application_cost,
-        subnet_immunity_period = subnet_immunity_period,
-        kappa = kappa,
-        rho = rho,
-        proposal_cost = governance_configuration.get('proposal_cost', proposal_cost),
-        proposal_expiration = governance_configuration.get('proposal_expiration', proposal_expiration),
-        max_burn = max_burn,
-        min_burn = min_burn
+        max_name_length=max_name_length,
+        min_name_length=min_name_length,
+        max_allowed_subnets=max_allowed_subnets,
+        max_allowed_modules=max_allowed_modules,
+        max_registrations_per_block=max_registrations_per_block,
+        max_allowed_weights=max_allowed_weights,
+        floor_delegation_fee=floor_delegation_fee,
+        floor_founder_share=floor_founder_share,
+        min_weight_stake=min_weight_stake,
+        curator=resolve_key_ss58(curator),
+        general_subnet_application_cost=general_subnet_application_cost,
+        subnet_immunity_period=subnet_immunity_period,
+        kappa=kappa,
+        rho=rho,
+        proposal_cost=governance_configuration.get(
+            "proposal_cost", proposal_cost
+        ),
+        proposal_expiration=governance_configuration.get(
+            "proposal_expiration", proposal_expiration
+        ),
+        max_burn=max_burn,
+        min_burn=min_burn,
     )
 
     global_params.pop("governance_config")  # type: ignore

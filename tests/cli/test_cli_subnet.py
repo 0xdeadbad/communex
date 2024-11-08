@@ -1,15 +1,16 @@
 import pytest
+
 from tests.conftest import InvokeCli
 from tests.str_utils import clean
 
 
 def test_cli_subnet_info_slow(invoke_cli: InvokeCli):
     result = invoke_cli(["subnet", "info", "0"])
-    
+
     output = clean(result.stdout)
-    
+
     assert result.exit_code == 0
-    
+
     assert "name commune" in output
     assert "founder 5HarzAYD37Sp3vJs385CLvhDPN52Cb1Q352yxZnDZchznPaS" in output
     assert "founder_share" in output
@@ -26,14 +27,14 @@ def test_cli_subnet_info_slow(invoke_cli: InvokeCli):
     assert "vote_threshold" in output
     assert "emission" in output
     assert "max_weight_age" in output
-    
+
 
 def test_cli_subnet_list_slow(invoke_cli: InvokeCli):
     result = invoke_cli(["subnet", "list"])
-    assert result.exit_code == 0    
-    
+    assert result.exit_code == 0
+
     output = clean(result.stdout)
-    
+
     assert "netuid" in output
     assert "name" in output
     assert "founder" in output
@@ -51,7 +52,7 @@ def test_cli_subnet_list_slow(invoke_cli: InvokeCli):
     assert "vote_threshold" in output
     assert "emission" in output
     assert "max_weight_age" in output
-    
+
 
 def test_cli_subnet_update(invoke_cli: InvokeCli):
     pytest.skip("Not implemented yet")

@@ -274,12 +274,7 @@ def transform_module_into(
         for key in to_exclude:
             del module[key]
         module["stake"] = round(from_nano(module["stake"]), 2)
-        module["emission"] = round(
-            from_horus(
-                module["emission"], tempo
-            ),
-            4
-        )
+        module["emission"] = round(from_horus(module["emission"], tempo), 4)
         if module.get("balance") is not None:
             module["balance"] = from_nano(module["balance"])
         else:

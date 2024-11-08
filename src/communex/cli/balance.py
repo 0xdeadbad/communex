@@ -147,6 +147,7 @@ def transfer(ctx: Context, key: str, amount: float, dest: str):
     else:
         raise ChainTransactionError(response.error_message)  # type: ignore
 
+
 @balance_app.command()
 def transfer_all(ctx: Context, dest: str, min: float):
     """
@@ -156,58 +157,71 @@ def transfer_all(ctx: Context, dest: str, min: float):
     context = make_custom_context(ctx)
     client = context.com_client()
 
-    keys = local_key_addresses(context)
-    dest_address = resolve_key_ss58_encrypted(dest, context)
+    keys = local_key_addresses(context.password_manager)
+    dest_address = resolve_key_ss58_encrypted(
+        dest, password_provider=context.password_manager
+    )
 
     # We should probably not transfer into the same account
     keys = list(filter(lambda i: i[1] != dest_address, keys.items()))
 
     if len(keys) <= 0:
-        context.error('There is no keys you can transfer from! (note: probably your\'e trying to transfer from yourself to yourself)')
+        context.error(
+            "There is no keys you can transfer from! (note: probably your'e trying to transfer from yourself to yourself)"
+        )
 
         raise typer.Abort()
 
-    if not context.confirm(f'Do you really want to transfer all from {len(keys)} key(s) to {dest_address}?'):
+    if not context.confirm(
+        f"Do you really want to transfer all from {len(keys)} key(s) to {dest_address}?"
+    ):
         raise typer.Abort()
 
     min_value = to_nano(min)
 
-    with context.progress_status('Starting transfer...') as status:
+    with context.progress_status("Starting transfer...") as status:
         length = len(keys)
 
-        for (index, (key_name, address)) in enumerate(keys):
+        for index, (key_name, address) in enumerate(keys):
             try:
                 status.update(
-                    status = f'{index + 1}/{length} Transferring from key {key_name}')
+                    status=f"{index + 1}/{length} Transferring from key {key_name}"
+                )
 
-                keypair = try_classic_load_key(name = key_name, context = context)
+                keypair = try_classic_load_key(key_name=key_name)
 
-                status.update(status = f'{index + 1}/{length} Transferring from key {key_name}: Fetching stake...')
-                stake = sum(client.get_staketo(key = address).values())
+                status.update(
+                    status=f"{index + 1}/{length} Transferring from key {key_name}: Fetching stake..."
+                )
+                stake = sum(client.get_staketo(key=address).values())
 
                 if stake > 0:
                     status.update(
-                        status = f'{index + 1}/{length} Transferring from key {key_name}: Unstaking {stake}...')
-                    client.unstake(key = keypair, amount = stake, dest = address)
+                        status=f"{index + 1}/{length} Transferring from key {key_name}: Unstaking {stake}..."
+                    )
+                    client.unstake(key=keypair, amount=stake, dest=address)
 
                 status.update(
-                    status = f'{index + 1}/{length} Transferring from key {key_name}: Fetching balance...')
-                balance = client.get_balance(addr = address)
+                    status=f"{index + 1}/{length} Transferring from key {key_name}: Fetching balance..."
+                )
+                balance = client.get_balance(addr=address)
 
                 if balance <= min_value:
                     continue
 
                 status.update(
-                    status = f'{index + 1}/{length} Transferring from key {key_name}: Transferring {balance} to {dest_address}...')
+                    status=f"{index + 1}/{length} Transferring from key {key_name}: Transferring {balance} to {dest_address}..."
+                )
 
                 client.transfer(
-                    key = keypair,
-                    amount = balance - min_value,
-                    dest = dest_address
+                    key=keypair,
+                    amount=balance - min_value,
+                    dest=dest_address,  # type: ignore
                 )
             except Exception as e:
-                context.error(f'Couldn\'t transfer from key {key_name}: {e}')
-        status.update(status = 'Transferred')
+                context.error(f"Couldn't transfer from key {key_name}: {e}")
+        status.update(status="Transferred")
+
 
 @balance_app.command()
 def transfer_stake(
@@ -265,9 +279,7 @@ def stake(
     )
     context.info("INFO: ", style="bold green", end="")  # type: ignore
     context.info(delegating_message)
-    with context.progress_status(
-        f"Staking {amount} tokens to {dest}..."
-    ):
+    with context.progress_status(f"Staking {amount} tokens to {dest}..."):
         response = client.stake(
             key=keypair, amount=nano_amount, dest=resolved_dest
         )

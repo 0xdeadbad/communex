@@ -14,11 +14,10 @@ from queue import Empty
 from time import sleep
 from typing import Generic, Optional, TypeVar, cast
 
-from Crypto.Hash import keccak
-from substrateinterface import Keypair
-
 from communex.client import CommuneClient
 from communex.util.mutex import MutexBox
+from Crypto.Hash import keccak
+from substrateinterface import Keypair
 
 SEAL_LIMIT = 2**256 - 1  # U256_MAX
 DIFFICULTY = 1_000_000
@@ -51,19 +50,21 @@ class GenericQueue(Generic[T]):
     """
 
     def __init__(self):
-        self._queue = multiprocessing.Queue() # type: ignore
+        self._queue = multiprocessing.Queue()  # type: ignore
 
-    def put(self, item: T, block: bool = True, timeout: float | None = None) -> None:
-        self._queue.put(item, block, timeout) # type: ignore
+    def put(
+        self, item: T, block: bool = True, timeout: float | None = None
+    ) -> None:
+        self._queue.put(item, block, timeout)  # type: ignore
 
     def get(self, block: bool = True, timeout: float | None = None) -> T | None:
-        return self._queue.get(block, timeout) # type: ignore
+        return self._queue.get(block, timeout)  # type: ignore
 
     def __getattr__(self, name: str):
-        return getattr(self._queue, name) # type: ignore
+        return getattr(self._queue, name)  # type: ignore
 
     def put_nowait(self, item: T):
-        self._queue.put_nowait(item) # type: ignore
+        self._queue.put_nowait(item)  # type: ignore
 
 
 def _terminate_workers_and_wait_for_exit(
