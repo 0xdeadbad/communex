@@ -1,7 +1,7 @@
 from typing import Optional, Protocol
 
 import pytest
-from typer.testing import CliRunner, Result  # type: ignore
+from typer.testing import CliRunner, Result
 
 from communex.cli.root import app
 
