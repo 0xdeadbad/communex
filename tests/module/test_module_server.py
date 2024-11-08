@@ -2,13 +2,15 @@ import json
 
 import pytest
 import requests
-from tests.module.conftest import TEST_HOST, TEST_PORT, random_keypair
 
 from communex.key import Keypair, check_ss58_address
-from communex.module._protocol import (create_method_endpoint,
-                                       create_request_data)
+from communex.module._protocol import (
+    create_method_endpoint,
+    create_request_data,
+)
 from communex.module._signer import TESTING_MNEMONIC
 from communex.module.server import ModuleServer
+from tests.module.conftest import TEST_HOST, TEST_PORT, random_keypair
 
 
 def module_endpoint(method_name: str) -> str:
