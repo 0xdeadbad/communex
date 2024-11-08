@@ -1,6 +1,7 @@
 from typing import Annotated, Optional
 
 import typer
+import sys
 
 from communex import __version__
 
@@ -12,7 +13,22 @@ from .module import module_app
 from .network import network_app
 from .subnet import subnet_app
 
-app = typer.Typer()
+import rich
+
+interactive = True
+color = True
+
+if not sys.stdin.isatty():
+    interactive = False
+
+if not sys.stdout.isatty() or not sys.stderr.isatty():
+    color = False
+
+rich.reconfigure(no_color = not color)
+
+app = typer.Typer(
+    no_args_is_help = True
+)
 
 app.add_typer(
     key_app,
@@ -50,7 +66,6 @@ def _version_callback(value: bool):
         print(f"CommuneX {__version__}")
         raise typer.Exit()
 
-
 def flag_option(
     flag: str,
     flag_envvar: str,
@@ -62,9 +77,9 @@ def flag_option(
     return typer.Option(
         flag_long,
         flag_short,
-        is_flag=True,
-        envvar=flag_envvar,
-        help=flag_help
+        is_flag = True,
+        envvar = flag_envvar,
+        help = flag_help
     )
 
 
@@ -77,6 +92,10 @@ def main(
         "testnet", "COMX_USE_TESTNET", "Use testnet endpoints.")] = False,
     yes_to_all: Annotated[bool, flag_option(
         "yes", "COMX_YES_TO_ALL", "Say yes to all confirmation inputs.")] = False,
+    no_interactive: Annotated[bool, flag_option(
+        "no-interactive", "COMX_NO_INTERACTIVE", "Disable interactive mode", "i")] = False,
+    no_color: Annotated[bool, flag_option(
+        "no-color", "COMX_NO_COLOR", "Disable output colors", "c")] = False,
     version: Annotated[Optional[bool], typer.Option(
         callback=_version_callback)] = None,
 ):
@@ -86,10 +105,24 @@ def main(
     This command line interface is under development and subject to change.
     """
 
+    global interactive
+    global color
+
+    if no_interactive:
+        interactive = False
+
+    if no_color:
+        color = False
+
     # Pass the extra context data to the subcommands.
     ctx.obj = ExtraCtxData(
-        output_json=json, use_testnet=testnet, yes_to_all=yes_to_all)
+        output_json = json,
+        use_testnet = testnet,
+        yes_to_all = yes_to_all,
+        interactive = interactive,
+        color = color
+    )
 
 
-if main.__doc__ is not None:
-    main.__doc__ = main.__doc__.format(version=__version__)
+assert main.__doc__
+main.__doc__ = main.__doc__.format(version = __version__)
