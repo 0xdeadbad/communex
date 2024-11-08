@@ -6,10 +6,11 @@ from typer import Context
 
 from communex._common import IPFS_REGEX, BalanceUnit, format_balance
 from communex.balance import to_nano
-from communex.cli._common import (
-    make_custom_context,
-    print_table_from_plain_dict,
-)
+from communex.cli._common import (make_custom_context,
+                                  print_table_from_plain_dict)
+from communex.compat.key import (resolve_key_ss58_encrypted,
+                                 try_classic_load_key,
+                                 local_key_addresses)
 from communex.errors import ChainTransactionError
 from communex.faucet.powv2 import solve_for_difficulty_fast
 
@@ -142,6 +143,67 @@ def transfer(ctx: Context, key: str, amount: float, dest: str):
     else:
         raise ChainTransactionError(response.error_message)  # type: ignore
 
+@balance_app.command()
+def transfer_all(ctx: Context, dest: str, min: float):
+    """
+    Transfer all balance to a specific address
+    """
+
+    context = make_custom_context(ctx)
+    client = context.com_client()
+
+    keys = local_key_addresses(context)
+    dest_address = resolve_key_ss58_encrypted(dest, context)
+
+    # We should probably not transfer into the same account
+    keys = list(filter(lambda i: i[1] != dest_address, keys.items()))
+
+    if len(keys) <= 0:
+        context.error('There is no keys you can transfer from! (note: probably your\'e trying to transfer from yourself to yourself)')
+
+        raise typer.Abort()
+
+    if not context.confirm(f'Do you really want to transfer all from {len(keys)} key(s) to {dest_address}?'):
+        raise typer.Abort()
+
+    min_value = to_nano(min)
+
+    with context.progress_status('Starting transfer...') as status:
+        length = len(keys)
+
+        for (index, (key_name, address)) in enumerate(keys):
+            try:
+                status.update(
+                    status = f'{index + 1}/{length} Transferring from key {key_name}')
+
+                keypair = try_classic_load_key(name = key_name, context = context)
+
+                status.update(status = f'{index + 1}/{length} Transferring from key {key_name}: Fetching stake...')
+                stake = sum(client.get_staketo(key = address).values())
+
+                if stake > 0:
+                    status.update(
+                        status = f'{index + 1}/{length} Transferring from key {key_name}: Unstaking {stake}...')
+                    client.unstake(key = keypair, amount = stake, dest = address)
+
+                status.update(
+                    status = f'{index + 1}/{length} Transferring from key {key_name}: Fetching balance...')
+                balance = client.get_balance(addr = address)
+
+                if balance <= min_value:
+                    continue
+
+                status.update(
+                    status = f'{index + 1}/{length} Transferring from key {key_name}: Transferring {balance} to {dest_address}...')
+
+                client.transfer(
+                    key = keypair,
+                    amount = balance - min_value,
+                    dest = dest_address
+                )
+            except Exception as e:
+                context.error(f'Couldn\'t transfer from key {key_name}: {e}')
+        status.update(status = 'Transferred')
 
 @balance_app.command()
 def transfer_stake(
