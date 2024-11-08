@@ -144,12 +144,12 @@ class StakeLimiter:
 
     async def _refill(self, key: str) -> None:
         bucket = self.buckets.get(key)
-        if bucket is None:  # type: ignore
+        if bucket is None:
             await self._fill(key)
             return
 
         filled_bucket = self.buckets.get(key)
-        assert filled_bucket  # type: ignore
+        assert filled_bucket
         tokens, last_seen = filled_bucket
 
         key_rate = await self._get_key_refresh_ratio(key)

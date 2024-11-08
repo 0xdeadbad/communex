@@ -260,9 +260,10 @@ def stake(
         "`comx key power-delegation <key> --disable`."
     )
     context.info("INFO: ", style="bold green", end="")  # type: ignore
-    context.info(delegating_message)  # type: ignore
-
-    with context.progress_status(f"Staking {amount} tokens to {dest}..."):
+    context.info(delegating_message)
+    with context.progress_status(
+        f"Staking {amount} tokens to {dest}..."
+    ):
         response = client.stake(
             key=keypair, amount=nano_amount, dest=resolved_dest
         )

@@ -6,6 +6,7 @@ from typer import Context
 
 import asyncio
 import aiohttp
+from typing import Coroutine
 
 import json
 from communex.cli._common import (
@@ -34,8 +35,10 @@ def list(ctx: Context):
     subnets_with_netuids = [
         {"netuid": key, **value} for key, value in subnets.items()
     ]
-    for dict in subnets_with_netuids:  # type: ignore
-        print_table_from_plain_dict(dict, ["Params", "Values"], context.console)  # type: ignore
+
+    for dict in subnets_with_netuids:
+        print_table_from_plain_dict(
+            dict, ["Params", "Values"], context.console)
 
 
 @subnet_app.command()
@@ -387,8 +390,9 @@ def list_curator_applications(ctx: Context):
         try:
             json_data = json.loads(item_data)
 
-            data[key] = json_data # type: ignore
+            data[key] = json_data
             continue
+
         except json.JSONDecodeError:
             pass
 
@@ -400,7 +404,7 @@ def list_curator_applications(ctx: Context):
         if not re.match(IPFS_REGEX, ipfs_url):
             continue # Invalid IPFS cid, skip
 
-        requests[key] = ipfs_url # type: ignore
+        requests[int(key)] = ipfs_url
 
     with context.progress_status("Fetching curator applications data..."):
         async def ipfs_request(key: int, cid: str):
@@ -415,21 +419,21 @@ def list_curator_applications(ctx: Context):
 
                     return (key, await response.json())
 
-        async def fetch_all(): # type: ignore
+        async def fetch_all() -> __builtins__.list[tuple[int, dict[str, Any]]]:
             """
             Fetch data from all applications that are using IPFS
             """
-            tasks = []
+            tasks: __builtins__.list[Coroutine[Any, Any, tuple[int, None] | tuple[int, Any]]] = []
 
             for key in requests.keys():
                 cid = requests.get(key, '')
-                tasks.append(ipfs_request(key, cid)) # type: ignore
+                tasks.append(ipfs_request(key, cid))
 
-            return await asyncio.gather(*tasks) # type: ignore
+            return await asyncio.gather(*tasks)
 
-        items = asyncio.run(fetch_all()) # type: ignore
+        items = asyncio.run(fetch_all())
 
-        for (key, item) in items: # type: ignore
+        for (key, item) in items:
             data[key] = item
 
     for key in keys:

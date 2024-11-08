@@ -51,21 +51,19 @@ class GenericQueue(Generic[T]):
     """
 
     def __init__(self):
-        self._queue = multiprocessing.Queue()  # type: ignore
+        self._queue = multiprocessing.Queue() # type: ignore
 
-    def put(
-        self, item: T, block: bool = True, timeout: float | None = None
-    ) -> None:
-        self._queue.put(item, block, timeout)  # type: ignore
+    def put(self, item: T, block: bool = True, timeout: float | None = None) -> None:
+        self._queue.put(item, block, timeout) # type: ignore
 
     def get(self, block: bool = True, timeout: float | None = None) -> T | None:
-        return self._queue.get(block, timeout)  # type: ignore
+        return self._queue.get(block, timeout) # type: ignore
 
     def __getattr__(self, name: str):
-        return getattr(self._queue, name)  # type: ignore
+        return getattr(self._queue, name) # type: ignore
 
     def put_nowait(self, item: T):
-        self._queue.put_nowait(item)  # type: ignore
+        self._queue.put_nowait(item) # type: ignore
 
 
 def _terminate_workers_and_wait_for_exit(
@@ -164,7 +162,7 @@ class _SolverBase(multiprocessing.Process):
         self.num_proc = num_proc
         self.update_interval = update_interval
         self.solution_queue = solution_queue
-        self.newBlockEvent = multiprocessing.Event()  # type: ignore
+        self.newBlockEvent = multiprocessing.Event()
         self.newBlockEvent.clear()
         self.block_info_box = block_info_box
         self.stopEvent = stopEvent
@@ -199,7 +197,7 @@ def unbox_block_info(block_info_box: MutexBox[BlockInfo]):
     """
     with block_info_box as block_info:
         block_number = block_info.block_number
-        block_and_key_hash_bytes = bytes(block_info.curr_block)  # type: ignore
+        block_and_key_hash_bytes = bytes(block_info.curr_block)
         block_hash = block_info.block_hash
         block_info.new_info = False
     return block_number, block_and_key_hash_bytes, block_hash
@@ -254,8 +252,8 @@ class _Solver(_SolverBase):
             solution = _solve_for_nonce_block(
                 nonce_start,
                 nonce_end,
-                block_and_key_hash_bytes,  # type: ignore
-                block_number,  # type: ignore
+                block_and_key_hash_bytes,
+                block_number,
                 block_hash,  # type: ignore
             )
 
@@ -327,7 +325,7 @@ def _update_curr_block_worker(
                     byte_list: list[int] = []
                     byte = block_and_key_hash_bytes[i]
                     byte_list.append(byte)
-                block_info.curr_block = byte_list  # type: ignore
+                block_info.curr_block = bytes(byte_list)
                 block_info.new_info = True
         sleep(sleep_time)
 
