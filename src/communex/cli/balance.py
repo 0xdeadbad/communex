@@ -149,7 +149,11 @@ def transfer(ctx: Context, key: str, amount: float, dest: str):
 
 
 @balance_app.command()
-def transfer_all(ctx: Context, dest: str, min: float):
+def transfer_all(
+    ctx: Context,
+    dest: str,
+    min: Optional[float] = 0.05
+):
     """
     Transfer all balance to a specific address
     """
@@ -177,7 +181,7 @@ def transfer_all(ctx: Context, dest: str, min: float):
     ):
         raise typer.Abort()
 
-    min_value = to_nano(min)
+    min_value = to_nano(min) # type: ignore
 
     with context.progress_status("Starting transfer...") as status:
         length = len(keys)

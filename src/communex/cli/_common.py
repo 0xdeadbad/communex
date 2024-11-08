@@ -23,7 +23,6 @@ from communex.types import (
     SubnetParamsWithEmission,
 )
 
-
 @dataclass
 class ExtraCtxData:
     output_json: bool
@@ -70,22 +69,30 @@ class CustomCtx:
     password_manager: CliPasswordProvider
     _com_client: CommuneClient | None = None
 
+    use_json_output: bool = False
+    use_yes_to_all: bool = False
+    use_testnet: bool = False
+
     def __init__(
         self,
         ctx: ExtendedContext,
         settings: ComxSettings,
-        console: rich.console.Console,
-        console_err: rich.console.Console,
         com_client: CommuneClient | None = None,
     ):
         self.ctx = ctx
         self.settings = settings
-        self.console = console
-        self.console_err = console_err
         self._com_client = com_client
+
         self.password_manager = CliPasswordProvider(
             self.settings, self.prompt_secret
         )
+
+        self.use_json_output = ctx.obj.output_json
+        self.use_yes_to_all = ctx.obj.yes_to_all
+        self.use_testnet = ctx.obj.use_testnet
+
+        self.console = Console()
+        self.console_err = Console(stderr = True)
 
     def get_use_testnet(self) -> bool:
         return self.ctx.obj.use_testnet
@@ -95,23 +102,26 @@ class CustomCtx:
         return get_node_url(self.settings, use_testnet=use_testnet)
 
     def com_client(self) -> CommuneClient:
+        use_testnet = self.use_testnet
+
+        if self._com_client is not None:
+            return self._com_client
+
+        node_url = get_node_url(None, use_testnet = use_testnet)
+        self.info(f"Using node: {node_url}")
+
+        for _ in range(5):
+            try:
+                self._com_client = CommuneClient(
+                    url=node_url, num_connections=1, wait_for_finalization=False)
+            except Exception:
+                self.info(f"Failed to connect to node: {node_url}")
+                node_url = get_node_url(None, use_testnet=use_testnet)
+                self.info(f"Will retry with node {node_url}")
+                continue
+
         if self._com_client is None:
-            node_url = self.get_node_url()
-            self.info(f"Using node: {node_url}")
-            for _ in range(5):
-                try:
-                    self._com_client = CommuneClient(
-                        url=node_url,
-                        num_connections=1,
-                        wait_for_finalization=False,
-                    )
-                except Exception:
-                    self.info(f"Failed to connect to node: {node_url}")
-                    node_url = self.get_node_url()
-                    self.info(f"Will retry with node {node_url}")
-                    continue
-            if self._com_client is None:
-                raise ConnectionError("Could not connect to any node")
+            raise ConnectionError("Could not connect to any node")
 
         return self._com_client
 
@@ -185,10 +195,8 @@ class CustomCtx:
 
 def make_custom_context(ctx: typer.Context) -> CustomCtx:
     return CustomCtx(
-        ctx=cast(ExtendedContext, ctx),  # TODO: better check
-        settings=ComxSettings(),
-        console=Console(),
-        console_err=Console(stderr=True),
+        ctx = cast(ExtendedContext, ctx),  # TODO: better check
+        settings = ComxSettings(),
     )
 
 
