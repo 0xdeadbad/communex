@@ -7,14 +7,18 @@ from typer import Context
 
 import communex.balance as c_balance
 from communex._common import intersection_update
-from communex.cli._common import (make_custom_context, print_module_info,
-                                  print_table_from_plain_dict)
-from communex.compat.key import try_classic_load_key
+from communex.cli._common import (
+    make_custom_context,
+    print_module_info,
+    print_table_from_plain_dict,
+)
 from communex.errors import ChainTransactionError
 from communex.key import check_ss58_address
 from communex.misc import get_map_modules
-from communex.module._rate_limiters.limiters import (IpLimiterParams,
-                                                     StakeLimiterParams)
+from communex.module._rate_limiters.limiters import (
+    IpLimiterParams,
+    StakeLimiterParams,
+)
 from communex.module.server import ModuleServer
 from communex.types import Ss58Address
 from communex.util import is_ip_valid
@@ -66,7 +70,8 @@ def register(
             context.info("Not registering")
             raise typer.Abort()
 
-    resolved_key = try_classic_load_key(key, context)
+    resolved_key = context.load_key(key, None)
+
     with context.progress_status(f"Registering Module {name}..."):
         subnet_name = client.get_subnet_name(netuid)
         address = f"{ip}:{port}"
@@ -93,9 +98,11 @@ def deregister(ctx: Context, key: str, netuid: int):
     context = make_custom_context(ctx)
     client = context.com_client()
 
-    resolved_key = try_classic_load_key(key, context)
-    with context.progress_status(f"Deregistering your module on subnet {netuid}..."):
+    resolved_key = context.load_key(key, None)
 
+    with context.progress_status(
+        f"Deregistering your module on subnet {netuid}..."
+    ):
         response = client.deregister_module(key=resolved_key, netuid=netuid)
 
         if response.is_success:
@@ -121,9 +128,11 @@ def update(
 
     context = make_custom_context(ctx)
     client = context.com_client()
+
     if metadata and len(metadata) > 59:
         raise ValueError("Metadata must be less than 60 characters")
-    resolved_key = try_classic_load_key(key)
+
+    resolved_key = context.load_key(key, None)
 
     if ip and not is_ip_valid(ip):
         raise ValueError("Invalid ip address")
@@ -132,9 +141,11 @@ def update(
 
     module = next(
         (
-            item for item in modules_to_list if item["key"] == resolved_key.ss58_address
+            item
+            for item in modules_to_list
+            if item["key"] == resolved_key.ss58_address
         ),
-        None
+        None,
     )
 
     if module is None:
@@ -200,10 +211,11 @@ def serve(
         False, help=("If this value is passed, the ip limiter will be used")
     ),
     token_refill_rate_base_multiplier: Optional[int] = typer.Option(
-        None, help=(
+        None,
+        help=(
             "Multiply the base limit per stake. Only used in stake limiter mode."
-        )
-    )
+        ),
+    ),
 ):
     """
     Serves a module on `127.0.0.1` on port `port`. `class_path` should specify
@@ -240,11 +252,16 @@ def serve(
         context.error(f"Class `{class_name}` not found in module `{module}`")
         raise typer.Exit(code=1)
 
-    keypair = try_classic_load_key(key, context)
+    keypair = context.load_key(key, None)
+
     if test_mode:
         subnets_whitelist = None
     token_refill_rate = token_refill_rate_base_multiplier or 1
-    limiter_params = IpLimiterParams() if use_ip_limiter else StakeLimiterParams(token_ratio=token_refill_rate)
+    limiter_params = (
+        IpLimiterParams()
+        if use_ip_limiter
+        else StakeLimiterParams(token_ratio=token_refill_rate)
+    )
 
     if whitelist is None:
         context.info(
@@ -254,27 +271,25 @@ def serve(
     try:
         whitelist_ss58 = list_to_ss58(whitelist)
     except AssertionError:
-        context.error(
-            "Invalid SS58 address passed to whitelist"
-        )
+        context.error("Invalid SS58 address passed to whitelist")
         exit(1)
     try:
         blacklist_ss58 = list_to_ss58(blacklist)
     except AssertionError:
-        context.error(
-            "Invalid SS58 address passed on blacklist"
-        )
+        context.error("Invalid SS58 address passed on blacklist")
         exit(1)
     cast(list[Ss58Address] | None, whitelist)
 
     server = ModuleServer(
-        class_obj(), keypair,
-        whitelist=whitelist_ss58, blacklist=blacklist_ss58,
+        class_obj(),
+        keypair,
+        whitelist=whitelist_ss58,
+        blacklist=blacklist_ss58,
         subnets_whitelist=subnets_whitelist,
         max_request_staleness=request_staleness,
         limiter=limiter_params,
         ip_blacklist=ip_blacklist,
-        use_testnet=use_testnet
+        use_testnet=use_testnet,
     )
     app = server.get_fastapi_app()
     host = ip or "127.0.0.1"
@@ -292,16 +307,22 @@ def info(ctx: Context, name: str, balance: bool = False, netuid: int = 0):
     with context.progress_status(
         f"Getting Module {name} on a subnet with netuid {netuid}…"
     ):
-        modules = get_map_modules(client, netuid=netuid, include_balances=balance)
+        modules = get_map_modules(
+            client, netuid=netuid, include_balances=balance
+        )
         modules_to_list = [value for _, value in modules.items()]
 
-        module = next((item for item in modules_to_list if item["name"] == name), None)
+        module = next(
+            (item for item in modules_to_list if item["name"] == name), None
+        )
 
     if module is None:
         raise ValueError("Module not found")
 
     general_module = cast(dict[str, Any], module)
-    print_table_from_plain_dict(general_module, ["Params", "Values"], context.console)
+    print_table_from_plain_dict(
+        general_module, ["Params", "Values"], context.console
+    )
 
 
 @module_app.command(name="list")
@@ -315,8 +336,10 @@ def inventory(ctx: Context, balances: bool = False, netuid: int = 0):
     # with context.progress_status(
     #     f"Getting Modules on a subnet with netuid {netuid}..."
     # ):
-    modules = cast(dict[str, Any], get_map_modules(
-        client, netuid=netuid, include_balances=balances))
+    modules = cast(
+        dict[str, Any],
+        get_map_modules(client, netuid=netuid, include_balances=balances),
+    )
 
     # Convert the values to a human readable format
     modules_to_list = [value for _, value in modules.items()]

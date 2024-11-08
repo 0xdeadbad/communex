@@ -7,8 +7,10 @@ from typer import Context
 
 import communex.balance as c_balance
 from communex.cli._common import (
-    CustomCtx, make_custom_context,
-    print_table_from_plain_dict, tranform_network_params
+    CustomCtx,
+    make_custom_context,
+    print_table_from_plain_dict,
+    tranform_network_params,
 )
 from communex.client import CommuneClient
 from communex.compat.key import local_key_addresses, try_classic_load_key, resolve_key_ss58
@@ -76,8 +78,9 @@ def list_proposals(ctx: Context, query_cid: bool = typer.Option(True)):
         if isinstance(status, dict):
             batch_proposal["status"] = [*status.keys()][0]
         print_table_from_plain_dict(
-            batch_proposal, [
-                f"Proposal id: {proposal_id}", "Params"], context.console
+            batch_proposal,
+            [f"Proposal id: {proposal_id}", "Params"],
+            context.console,
         )
 
 
@@ -153,10 +156,11 @@ def get_valid_voting_keys(
     client: CommuneClient,
     threshold: int = 25000000000,  # 25 $COMAI
 ) -> dict[str, int]:
-    local_keys = local_key_addresses(ctx=ctx, universal_password=None)
+    local_keys = local_key_addresses(password_provider=ctx.password_manager)
     keys_stake = local_keys_to_stakedbalance(client, local_keys)
-    keys_stake = {key: stake for key,
-                  stake in keys_stake.items() if stake >= threshold}
+    keys_stake = {
+        key: stake for key, stake in keys_stake.items() if stake >= threshold
+    }
     return keys_stake
 
 
@@ -178,17 +182,17 @@ def vote_proposal(
         delegators = client.get_voting_power_delegators()
         keys_stake = get_valid_voting_keys(context, client)
         keys_stake = {
-            key: stake for key,
-            stake in keys_stake.items() if key not in delegators
+            key: stake
+            for key, stake in keys_stake.items()
+            if key not in delegators
         }
     else:
         keys_stake = {key: None}
 
     for voting_key in track(keys_stake.keys(), description="Voting..."):
-
-        resolved_key = try_classic_load_key(voting_key, context)
+        keypair = context.load_key(voting_key, None)
         try:
-            client.vote_on_proposal(resolved_key, proposal_id, agree)
+            client.vote_on_proposal(keypair, proposal_id, agree)
         except Exception as e:
             print(f"Error while voting with key {key}: ", e)
             print("Skipping...")
@@ -203,7 +207,7 @@ def unvote_proposal(ctx: Context, key: str, proposal_id: int):
     context = make_custom_context(ctx)
     client = context.com_client()
 
-    resolved_key = try_classic_load_key(key, context)
+    resolved_key = context.load_key(key, None)
     with context.progress_status(f"Unvoting on a proposal {proposal_id}..."):
         client.unvote_on_proposal(resolved_key, proposal_id)
 
@@ -225,7 +229,7 @@ def add_custom_proposal(ctx: Context, key: str, cid: str):
     ipfs_prefix = "ipfs://"
     cid = ipfs_prefix + cid
 
-    resolved_key = try_classic_load_key(key, context)
+    resolved_key = context.load_key(key, None)
 
     with context.progress_status("Adding a proposal..."):
         client.add_custom_proposal(resolved_key, cid)
@@ -251,7 +255,7 @@ def set_root_weights(ctx: Context, key: str):
     # Prompt user to select subnets
     selected_subnets = typer.prompt(
         "Select subnets to set weights for (space-separated list of UIDs)",
-        prompt_suffix="\n" + "\n".join(choices) + "\nEnter UIDs: "
+        prompt_suffix="\n" + "\n".join(choices) + "\nEnter UIDs: ",
     )
 
     # Parse the input string into a list of integers
@@ -260,8 +264,7 @@ def set_root_weights(ctx: Context, key: str):
     weights: list[int] = []
     for uid in uids:
         weight = typer.prompt(
-            f"Enter weight for subnet {uid} ({subnet_names[uid]})",
-            type=float
+            f"Enter weight for subnet {uid} ({subnet_names[uid]})", type=float
         )
         weights.append(weight)
 
@@ -269,7 +272,7 @@ def set_root_weights(ctx: Context, key: str):
     for uid, weight in zip(uids, weights):
         typer.echo(f"Subnet {uid} ({subnet_names[uid]}): {weight}")
 
-    resolved_key = try_classic_load_key(key, context)
+    resolved_key = context.load_key(key, None)
 
     client.vote(netuid=rootnet_id, uids=uids, weights=weights, key=resolved_key)
 
