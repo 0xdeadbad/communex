@@ -1,14 +1,12 @@
+import asyncio
+import json
 import re
-from typing import Any, cast
+from typing import Any, Coroutine, cast
 
+import aiohttp
 import typer
 from typer import Context
 
-import asyncio
-import aiohttp
-from typing import Coroutine
-
-import json
 from communex.cli._common import (
     make_custom_context,
     print_table_from_plain_dict,
