@@ -2,7 +2,7 @@ import datetime
 import json
 from typing import Any
 
-from substrateinterface import Keypair  # type: ignore
+from substrateinterface import Keypair
 
 from communex.types import Ss58Address
 
@@ -32,9 +32,7 @@ def create_headers(signature: bytes, my_key: Keypair, timestamp_iso: str):
 
 
 def create_request_data(
-    my_key: Keypair,
-    target_key: Ss58Address,
-    params: Any
+    my_key: Keypair, target_key: Ss58Address, params: Any
 ) -> tuple[bytes, dict[str, str]]:
     timestamp_iso = iso_timestamp_now()
 
