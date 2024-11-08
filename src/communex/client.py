@@ -514,7 +514,7 @@ class CommuneClient:
             item_key: tuple[Any, ...] | Any,
         ) -> tuple[Any, ...] | Any:
             if isinstance(item_key, tuple):
-                return tuple(k.value for k in item_key) # type: ignore
+                return tuple(k.value for k in item_key)  # type: ignore
             return item_key.value
 
         def concat_hash_len(key_hasher: str) -> int:
