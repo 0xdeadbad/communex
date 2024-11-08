@@ -4,12 +4,12 @@ from time import sleep
 
 import pytest
 import uvicorn
-from substrateinterface import Keypair
-
 from communex.key import generate_keypair
 from communex.module import Module, endpoint
 from communex.module.client import ModuleClient
 from communex.module.server import ModuleServer
+from substrateinterface import Keypair
+
 from tests.key_config import TEST_FAKE_MNEM_DO_NOT_USE_THIS
 
 TEST_HOST = "127.0.0.1"

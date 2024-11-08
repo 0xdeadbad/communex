@@ -104,7 +104,10 @@ def show(
 
     key_dict = check_type(key_dict, dict[str, Any])
 
-    print_table_from_plain_dict(key_dict, ["Key", "Value"], context.console)
+    if context.use_json_output:
+        context.output_json(**key_dict)
+    else:
+        print_table_from_plain_dict(key_dict, ["Key", "Value"], context.console_err)
 
 
 @key_app.command()
@@ -120,10 +123,11 @@ def balances(
     client = context.com_client()
 
     local_keys = local_key_addresses(context.password_manager)
-    with context.console.status(
+    with context.progress_status(
         "Getting balances of all keys, this might take a while..."
     ):
         key2freebalance, key2stake = local_keys_allbalance(client, local_keys)
+
     key_to_freebalance = {
         k: format_balance(v, unit) for k, v in key2freebalance.items()
     }
@@ -177,7 +181,11 @@ def balances(
     }
 
     general_dict: dict[str, list[Any]] = cast(dict[str, list[Any]], pretty_dict)
-    print_table_standardize(general_dict, context.console)
+
+    if context.use_json_output:
+        context.output_json(**general_dict)
+    else:
+        print_table_standardize(general_dict, context.console)
 
 
 @key_app.command(name = "list")
@@ -193,9 +201,15 @@ def inventory(
     general_key_to_address: dict[str, str] = cast(
         dict[str, str], key_to_address
     )
-    print_table_from_plain_dict(
-        general_key_to_address, ["Key", "Address"], context.console
-    )
+
+    if context.use_json_output:
+        context.output_json(
+            **general_key_to_address
+        )
+    else:
+        print_table_from_plain_dict(
+            general_key_to_address, ["Key", "Address"], context.console_err
+        )
 
 
 @key_app.command()
@@ -224,7 +238,12 @@ def stakefrom(
 
     result = {k: format_balance(v, unit) for k, v in result.items()}
 
-    print_table_from_plain_dict(result, ["Key", "Stake"], context.console)
+    if context.use_json_output:
+        context.output_json(
+            **result
+        )
+    else:
+        print_table_from_plain_dict(result, ["Key", "Stake"], context.console_err)
 
 
 @key_app.command()
@@ -252,7 +271,12 @@ def staketo(
 
     result = {k: format_balance(v, unit) for k, v in result.items()}
 
-    print_table_from_plain_dict(result, ["Key", "Stake"], context.console)
+    if context.use_json_output:
+        context.output_json(
+            **result
+        )
+    else:
+        print_table_from_plain_dict(result, ["Key", "Stake"], context.console_err)
 
 
 @key_app.command()
@@ -283,7 +307,16 @@ def total_free_balance(
 
         balance_sum = sum(key2balance.values())
 
-        context.output(format_balance(balance_sum, unit = unit))
+    formatted_output = format_balance(balance_sum, unit = unit)
+
+    if context.use_json_output:
+        context.output_json(
+            formatted_value = formatted_output,
+            unit = unit,
+            value = balance_sum
+        )
+    else:
+        context.output_data(formatted_output)
 
 
 @key_app.command()
@@ -315,7 +348,16 @@ def total_staked_balance(
 
         stake_sum = sum(key2stake.values())
 
-        context.output(format_balance(stake_sum, unit = unit))
+    formatted_output = format_balance(stake_sum, unit = unit)
+
+    if context.use_json_output:
+        context.output_json(
+            formatted_value = formatted_output,
+            unit = unit,
+            value = stake_sum
+        )
+    else:
+        context.output_data(formatted_output)
 
 
 @key_app.command()
@@ -344,7 +386,16 @@ def total_balance(
         key2tokens = {k: v + key2stake[k] for k, v in key2balance.items()}
         tokens_sum = sum(key2tokens.values())
 
-        context.output(format_balance(tokens_sum, unit = unit))
+    formatted_output = format_balance(tokens_sum, unit = unit)
+
+    if context.use_json_output:
+        context.output_json(
+            formatted_value = formatted_output,
+            unit = unit,
+            value = tokens_sum
+        )
+    else:
+        context.output_data(formatted_output)
 
 
 @key_app.command()

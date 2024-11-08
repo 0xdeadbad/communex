@@ -20,8 +20,8 @@ from communex.types import BurnConfiguration, SubnetParamsWithVoteMode, VoteMode
 subnet_app = typer.Typer(no_args_is_help = True)
 
 
-@subnet_app.command()
-def list(ctx: Context):
+@subnet_app.command(name = 'list')
+def list_subnets(ctx: Context):
     """
     Gets subnets.
     """
@@ -35,8 +35,12 @@ def list(ctx: Context):
         {"netuid": key, **value} for key, value in subnets.items()
     ]
 
-    for dict in subnets_with_netuids:
-        print_table_from_plain_dict(dict, ["Params", "Values"], context.console)
+
+    if context.use_json_output:
+        context.output_json(subnets = subnets_with_netuids)
+    else:
+        for dic in subnets_with_netuids:
+            print_table_from_plain_dict(dic, ["Params", "Values"], context.console_err)
 
 
 @subnet_app.command()
@@ -69,7 +73,10 @@ def distribution(ctx: Context):
             table_data["Consensus"].append(subnet_consensus.get(subnet, "N/A"))
             table_data["Emission %"].append(f"{round(emission_percentage, 2)}%")
 
-    print_table_standardize(table_data, context.console)
+    if context.use_json_output:
+        context.output_json(**table_data)
+    else:
+        print_table_standardize(table_data, context.console)
 
 
 @subnet_app.command()
@@ -84,9 +91,12 @@ def legit_whitelist(ctx: Context):
     with context.progress_status("Getting legitimate whitelist ..."):
         whitelist = cast(dict[str, int], client.query_map_legit_whitelist())
 
-    print_table_from_plain_dict(
-        whitelist, ["Module", "Recommended weight"], context.console
-    )
+    if context.use_json_output:
+        context.output_json(**whitelist)
+    else:
+        print_table_from_plain_dict(
+            whitelist, ["Module", "Recommended weight"], context.console_err
+        )
 
 
 @subnet_app.command()
@@ -105,9 +115,13 @@ def info(ctx: Context, netuid: int):
         raise ValueError("Subnet not found")
 
     general_subnet: dict[str, Any] = cast(dict[str, Any], subnet)
-    print_table_from_plain_dict(
-        general_subnet, ["Params", "Values"], context.console
-    )
+
+    if context.use_json_output:
+        context.output_json(**general_subnet)
+    else:
+        print_table_from_plain_dict(
+            general_subnet, ["Params", "Values"], context.console_err
+        )
 
 @subnet_app.command()
 def register(
@@ -423,7 +437,7 @@ def list_curator_applications(ctx: Context):
 
                     return (key, await response.json())
 
-        async def fetch_all() -> __builtins__.list[tuple[int, dict[str, Any]]]:
+        async def fetch_all() -> list[tuple[int, dict[str, Any]]]:
             """
             Fetch data from all applications that are using IPFS
             """
@@ -440,14 +454,28 @@ def list_curator_applications(ctx: Context):
         items = asyncio.run(fetch_all())
 
         for key, item in items:
-            data[key] = item
+            data[key] = item # type: ignore
 
-    for key in keys:
-        value = apps.get(key, {})
-        value_data = data.get(key, {})
+    if context.use_json_output:
+        def callback(i: dict[str, str]):
+            key = i.get('id', '0')
+            value = i
 
-        value["data"] = value_data  # type: ignore
+            value_data = data.get(key, requests.get(int(key), ''))
+            value["data"] = value_data  # type: ignore
 
-        print_table_from_plain_dict(
-            value, ["Params", "Values"], context.console
-        )
+            return value
+
+        result_dict = list(map(callback, apps.values()))
+
+        context.output_json(applications = result_dict)
+    else:
+        for key in keys:
+            value = apps.get(key, {})
+            value_data = data.get(key, {})
+
+            value["data"] = value_data  # type: ignore
+
+            print_table_from_plain_dict(
+                value, ["Params", "Values"], context.console_err
+            )

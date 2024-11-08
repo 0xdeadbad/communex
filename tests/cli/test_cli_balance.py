@@ -2,8 +2,8 @@ import random
 import re
 
 import pytest
-
 from communex.key import is_ss58_address
+
 from tests.conftest import InvokeCli
 from tests.str_utils import clean
 

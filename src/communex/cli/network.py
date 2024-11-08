@@ -44,7 +44,12 @@ def last_block(ctx: Context, hash: bool = False):
     if block:
         block_info = block["header"][info]
 
-    context.output(str(block_info))
+    if context.use_json_output:
+        context.output_json(
+            block_info = block_info
+        )
+    else:
+        context.output_data(str(block_info))
 
 
 @network_app.command()
@@ -58,9 +63,15 @@ def params(ctx: Context):
     with context.progress_status("Getting global network params ..."):
         global_params = get_global_params(client)
     printable_params = tranform_network_params(global_params)
-    print_table_from_plain_dict(
-        printable_params, ["Global params", "Value"], context.console
-    )
+
+    if context.use_json_output:
+        context.output_json(
+            **printable_params
+        )
+    else:
+        print_table_from_plain_dict(
+            printable_params, ["Global params", "Value"], context.console_err
+        )
 
 
 @network_app.command()
@@ -80,15 +91,21 @@ def list_proposals(ctx: Context, query_cid: bool = typer.Option(True)):
             context.info("No proposals found.")
             return
 
-    for proposal_id, batch_proposal in proposals.items():
-        status = batch_proposal["status"]
-        if isinstance(status, dict):
-            batch_proposal["status"] = [*status.keys()][0]
-        print_table_from_plain_dict(
-            batch_proposal,
-            [f"Proposal id: {proposal_id}", "Params"],
-            context.console,
+    if context.use_json_output:
+        context.output_json(
+            proposals = list(proposals.values())
         )
+    else:
+        for proposal_id, batch_proposal in proposals.items():
+            status = batch_proposal["status"]
+            if isinstance(status, dict):
+                batch_proposal["status"] = [*status.keys()][0]
+
+            print_table_from_plain_dict(
+                batch_proposal,
+                [f"Proposal id: {proposal_id}", "Params"],
+                context.console_err,
+            )
 
 
 @network_app.command()
@@ -206,8 +223,8 @@ def vote_proposal(
         try:
             client.vote_on_proposal(keypair, proposal_id, agree)
         except Exception as e:
-            print(f"Error while voting with key {key}: ", e)
-            print("Skipping...")
+            context.error(f"Error while voting with key {key}: {e}")
+            context.error("Skipping...")
             continue
 
 
@@ -265,9 +282,10 @@ def set_root_weights(ctx: Context, key: str):
     choices = [f"{uid}: {name}" for uid, name in subnet_names.items()]
 
     # Prompt user to select subnets
-    selected_subnets = typer.prompt(
-        "Select subnets to set weights for (space-separated list of UIDs)",
-        prompt_suffix = "\n" + "\n".join(choices) + "\nEnter UIDs: ",
+    selected_subnets = context.prompt(
+        f"Select subnets to set weights for (space-separated list of UIDs)\n" +
+        "\n".join(choices) + "\n" +
+        "Select",
     )
 
     # Parse the input string into a list of integers
@@ -275,19 +293,31 @@ def set_root_weights(ctx: Context, key: str):
 
     weights: list[int] = []
     for uid in uids:
-        weight = typer.prompt(
-            f"Enter weight for subnet {uid} ({subnet_names[uid]})", type = float
-        )
-        weights.append(weight)
+        while True:
+            try:
+                weight = int(
+                    context.prompt(
+                        f"Enter weight for subnet {uid} ({subnet_names[uid]})"
+                    )
+                )
 
-    typer.echo("Selected subnets and weights:")
+                weights.append(weight)
+                break
+            except EOFError as _:
+                raise typer.Abort()
+
+            except Exception as _:
+                context.error(f'Please input a valid number')
+                continue
+
+    context.info("Selected subnets and weights:")
     for uid, weight in zip(uids, weights):
-        typer.echo(f"Subnet {uid} ({subnet_names[uid]}): {weight}")
+        context.info(f"Subnet {uid} ({subnet_names[uid]}): {weight}")
 
     resolved_key = context.load_key(key, None)
 
     client.vote(netuid = rootnet_id, uids = uids, weights = weights, key = resolved_key)
-
+    context.info("Voted")
 
 @network_app.command()
 def registration_burn(

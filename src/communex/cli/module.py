@@ -320,9 +320,13 @@ def info(ctx: Context, name: str, balance: bool = False, netuid: int = 0):
         raise ValueError("Module not found")
 
     general_module = cast(dict[str, Any], module)
-    print_table_from_plain_dict(
-        general_module, ["Params", "Values"], context.console
-    )
+
+    if context.use_json_output:
+        context.output_json(**general_module)
+    else:
+        print_table_from_plain_dict(
+            general_module, ["Params", "Values"], context.console_err
+        )
 
 
 @module_app.command(name = "list")
@@ -356,6 +360,13 @@ def inventory(ctx: Context, balances: bool = False, netuid: int = 0):
         else:
             validators.append(module)
 
-    print_module_info(client, miners, context.console, netuid, "miners")
-    print_module_info(client, validators, context.console, netuid, "validators")
-    print_module_info(client, inactive, context.console, netuid, "inactive")
+    if context.use_json_output:
+        context.output_json(
+            miners = miners,
+            validators = validators,
+            inactive = inactive
+        )
+    else:
+        print_module_info(client, miners, context.console, netuid, "miners")
+        print_module_info(client, validators, context.console, netuid, "validators")
+        print_module_info(client, inactive, context.console, netuid, "inactive")

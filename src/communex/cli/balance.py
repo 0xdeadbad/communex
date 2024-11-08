@@ -41,7 +41,16 @@ def free_balance(
     ):
         balance = client.get_balance(key_address)
 
-    context.output(format_balance(balance, unit))
+    formatted_value = format_balance(balance, unit)
+
+    if context.use_json_output:
+        context.output_json(
+            formatted_value = formatted_value,
+            value = balance,
+            unit = unit
+        )
+    else:
+        context.output_data(formatted_value)
 
 
 @balance_app.command()
@@ -64,8 +73,16 @@ def staked_balance(
     ):
         result = sum(client.get_staketo(key = key_address).values())
 
-    context.output(format_balance(result, unit))
+    formatted_value = format_balance(result, unit)
 
+    if context.use_json_output:
+        context.output_json(
+            formatted_value = formatted_value,
+            value = result,
+            unit = unit
+        )
+    else:
+        context.output_data(formatted_value)
 
 @balance_app.command()
 def show(
@@ -87,15 +104,22 @@ def show(
         free_balance = client.get_balance(key_address)
         balance_sum = free_balance + staked_balance
 
-    print_table_from_plain_dict(
-        {
-            "Free": format_balance(free_balance, unit),
-            "Staked": format_balance(staked_balance, unit),
-            "Total": format_balance(balance_sum, unit),
-        },
-        ["Result", "Amount"],
-        context.console,
-    )
+    if context.use_json_output:
+        context.output_json(
+            staked_balance = staked_balance,
+            free_balance = free_balance,
+            total_balance = balance_sum
+        )
+    else:
+        print_table_from_plain_dict(
+            {
+                "Free": format_balance(free_balance, unit),
+                "Staked": format_balance(staked_balance, unit),
+                "Total": format_balance(balance_sum, unit),
+            },
+            ["Result", "Amount"],
+            context.console_err,
+        )
 
 
 @balance_app.command()
@@ -116,7 +140,16 @@ def get_staked(
     with context.progress_status(f"Getting stake of {key_address}..."):
         result = sum(client.get_staketo(key = key_address).values())
 
-    context.output(format_balance(result, unit))
+    formatted_output = format_balance(result, unit)
+
+    if context.use_json_output:
+        context.output_json(
+            formatted_value = formatted_output,
+            value = result,
+            unit = unit
+        )
+    else:
+        context.output_data(formatted_output)
 
 
 @balance_app.command()

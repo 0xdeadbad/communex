@@ -1,11 +1,11 @@
 from re import escape
 
 import pytest
-from substrateinterface import Keypair
-
 from communex.errors import NetworkTimeoutError
 from communex.key import check_ss58_address, generate_keypair
 from communex.module.client import ModuleClient
+from substrateinterface import Keypair
+
 from tests.module.conftest import TEST_HOST, TEST_PORT
 
 

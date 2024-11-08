@@ -1,5 +1,6 @@
 from .root import app
 
+
 def main():
     app()
 

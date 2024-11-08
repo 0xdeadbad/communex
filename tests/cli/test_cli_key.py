@@ -1,6 +1,6 @@
 import pytest
-
 from communex.key import is_ss58_address
+
 from tests.conftest import InvokeCli
 from tests.key_config import (
     TEST_FAKE_MNEM_DO_NOT_USE_THIS,

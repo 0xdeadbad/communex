@@ -1,7 +1,8 @@
+import sys
 from typing import Annotated, Optional
 
+import rich
 import typer
-import sys
 
 from communex import __version__
 
@@ -12,8 +13,6 @@ from .misc import misc_app
 from .module import module_app
 from .network import network_app
 from .subnet import subnet_app
-
-import rich
 
 interactive = True
 color = True

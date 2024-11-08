@@ -1,21 +1,21 @@
+import json
 from dataclasses import dataclass
 from getpass import getpass
 from typing import Any, Callable, Mapping, TypeVar, cast
 
 import rich
 import rich.prompt
-
-from rich.prompt import Prompt
-
 import typer
 from rich import box
-from rich.console import Console
+from rich.console import Console, PagerContext
+from rich.prompt import Prompt
 from rich.table import Table
 from substrateinterface import Keypair
 from typer import Context
 
 from communex._common import ComxSettings, get_node_url
 from communex.balance import dict_from_nano, from_horus, from_nano
+from communex.cli.term.status import JSONTextStatus
 from communex.client import CommuneClient
 from communex.compat.key import resolve_key_ss58_encrypted, try_classic_load_key
 from communex.errors import InvalidPasswordError, PasswordNotProvidedError
@@ -25,6 +25,7 @@ from communex.types import (
     Ss58Address,
     SubnetParamsWithEmission,
 )
+
 
 @dataclass
 class ExtraCtxData:
@@ -148,12 +149,40 @@ class CustomCtx:
     ) -> None:
         self.console.print(message, *args, **kwargs)  # type: ignore
 
+    def output_data(
+        self,
+        message: str,
+        *args: tuple[Any, ...],
+        **kwargs: dict[str, Any]
+    ) -> None:
+        self.console_err.print(message, *args, **kwargs) # type: ignore
+
+    def output_json(
+        self,
+        *args: tuple[Any, ...],
+        **kwargs: Any,
+    ) -> None:
+        self.console_err.print(
+            json.dumps({ **kwargs }),
+            *args,
+            crop = False,
+            overflow = 'ignore',
+            soft_wrap = False
+        )
+
     def info(
         self,
         message: str,
         *args: tuple[Any, ...],
         **kwargs: dict[str, Any],
     ) -> None:
+        if self.use_json_output:
+            message = json.dumps({
+                'type': 'log',
+                'level': 'info',
+                'message': message
+            })
+
         self.console_err.print(message, *args, **kwargs)  # type: ignore
 
     def error(
@@ -162,25 +191,107 @@ class CustomCtx:
         *args: tuple[Any, ...],
         **kwargs: dict[str, Any],
     ) -> None:
-        message = f"ERROR: {message}"
+        if self.use_json_output:
+            message = json.dumps({
+                'type': 'log',
+                'level': 'error',
+                'message': message
+            })
+        else:
+            message = f"ERROR: {message}"
+
         self.console_err.print(message, *args, style = "bold red", **kwargs)  # type: ignore
 
     def progress_status(self, message: str = ''):
-        return self.console_err.status(message)
+        if self.use_json_output:
+            return JSONTextStatus(
+                console = self.console_err,
+                status = message
+            )
+        else:
+            return self.console_err.status(
+                message,
+                spinner = 'dots12'
+            )
+
+    def pagination(self) -> PagerContext:
+        return self.console_err.pager()
 
     def confirm(self, message: str) -> bool:
         if self.use_yes_to_all:
-            print(f"{message} (--yes)")
-            return True
+            if self.use_json_output:
+                self.output_json(
+                    type = 'confirm',
+                    prompt = message,
+                    accepted = True
+                )
+                return True
+            else:
+                self.output_data(f"{message} (--yes)")
+                return True
 
-        return typer.confirm(message, err = True)
+        if self.use_json_output:
+            self.output_json(
+                prompt = message,
+                type = 'confirm',
+                accepted = False
+            )
+
+            return typer.confirm('', show_default = False, prompt_suffix = '')
+        else:
+            return typer.confirm(message, err = True)
 
     def prompt_secret(self, message: str) -> str:
-        return Prompt.ask(
-            message,
-            password = True,
-            console = self.console_err
-        )
+        if self.use_json_output:
+            self.output_json(
+                prompt = message,
+                type = 'secret',
+            )
+
+            return Prompt.ask(
+                '',
+                show_default = False,
+                password = True,
+                console = self.console_err
+            )
+        else:
+            return Prompt.ask(
+                message,
+                password = True,
+                console = self.console_err
+            )
+
+    def prompt(
+        self,
+        message: str,
+        choices: list[str]|None = None,
+        *args: tuple[Any, ...],
+        **kwargs: dict[Any, Any],
+    ) -> str:
+        if self.use_json_output:
+            self.output_json(
+                prompt = message,
+                type = 'prompt',
+                choices = choices
+            )
+
+            return Prompt.ask(
+                f'{message}',
+                console = self.console_err,
+                choices = choices,
+                show_default = False,
+                show_choices = False,
+                **kwargs, # type: ignore
+            )
+        else:
+            return Prompt.ask(
+                f'{message}',
+                choices = choices,
+                show_default = False,
+                show_choices = False,
+                console = self.console_err,
+                **kwargs, # type: ignore
+            )
 
     def load_key(self, key: str, password: str | None = None) -> Keypair:
         try:

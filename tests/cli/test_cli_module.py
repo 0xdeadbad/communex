@@ -1,9 +1,9 @@
 import re
 
 import pytest
+from communex.cli.root import app
 from typer.testing import CliRunner
 
-from communex.cli.root import app
 from tests.conftest import InvokeCli
 from tests.str_utils import clean
 

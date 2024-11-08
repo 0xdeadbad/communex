@@ -38,7 +38,16 @@ def circulating_supply(ctx: Context, unit: BalanceUnit = BalanceUnit.joule):
     ):
         supply = circulating_tokens(client)
 
-    context.output(format_balance(supply, unit))
+    formatted_output = format_balance(supply, unit)
+
+    if context.use_json_output:
+        context.output_json(
+            formatted_value = formatted_output,
+            value = supply,
+            unit = unit,
+        )
+    else:
+        context.output_data(formatted_output)
 
 
 @misc_app.command()
@@ -70,7 +79,13 @@ def apr(ctx: Context, fee: int = 0):
         * 100
     )
 
-    context.output(f"Fee {fee} | APR {_apr:.2f}%")
+    if context.use_json_output:
+        context.output_json(
+            fee = fee,
+            apr = _apr
+        )
+    else:
+        context.output_data(f"Fee {fee} | APR {_apr:.2f}%")
 
 
 @misc_app.command(name = "stats")
@@ -102,13 +117,20 @@ def stats(ctx: Context, balances: bool = False, netuid: int = 0):
         else:
             local_validators.append(module)
 
-    print_module_info(
-        client, local_inactive, context.console, netuid, "inactive"
-    )
-    print_module_info(client, local_miners, context.console, netuid, "miners")
-    print_module_info(
-        client, local_validators, context.console, netuid, "validators"
-    )
+    if context.use_json_output:
+        context.output_json(
+            local_inactive = local_inactive,
+            local_miners = local_miners,
+            local_validators = local_validators
+        )
+    else:
+        print_module_info(
+            client, local_inactive, context.console_err, netuid, "inactive"
+        )
+        print_module_info(client, local_miners, context.console, netuid, "miners")
+        print_module_info(
+            client, local_validators, context.console_err, netuid, "validators"
+        )
 
 
 @misc_app.command(name = "treasury-address")
@@ -118,7 +140,13 @@ def get_treasury_address(ctx: Context):
 
     with context.progress_status("Getting DAO treasury address..."):
         dao_address = client.get_dao_treasury_address()
-    context.output(dao_address)
+
+    if context.use_json_output:
+        context.output_json(
+            address = dao_address
+        )
+    else:
+        context.output_data(dao_address)
 
 
 @misc_app.command()
@@ -133,4 +161,5 @@ def delegate_rootnet_control(ctx: Context, key: str, target: str):
 
     with context.progress_status("Delegating control of the rootnet..."):
         client.delegate_rootnet_control(resolved_key, ss58_target)
+
     context.info("Control delegated.")

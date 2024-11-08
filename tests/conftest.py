@@ -1,9 +1,8 @@
 from typing import Optional, Protocol
 
 import pytest
-from typer.testing import CliRunner, Result
-
 from communex.cli.root import app
+from typer.testing import CliRunner, Result
 
 
 class InvokeCli(Protocol):
