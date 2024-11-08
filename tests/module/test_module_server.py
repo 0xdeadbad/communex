@@ -31,11 +31,11 @@ def test_module_server_call_success(
     params = {"msg": "all good?"}
 
     serialized_data, headers = create_request_data(
-        my_keypair, target_key=server_ss58_address, params=params
+        my_keypair, target_key = server_ss58_address, params = params
     )
 
     result = requests.post(
-        method_endpoint, headers=headers, json=json.loads(serialized_data)
+        method_endpoint, headers = headers, json = json.loads(serialized_data)
     )
 
     assert result.status_code == 200
@@ -53,11 +53,11 @@ def test_module_server_call_invalid_fn(
     params = {"msg": "all good?"}
 
     serialized_data, headers = create_request_data(
-        my_keypair, target_key=server_ss58_address, params=params
+        my_keypair, target_key = server_ss58_address, params = params
     )
 
     result = requests.post(
-        method_endpoint, headers=headers, json=json.loads(serialized_data)
+        method_endpoint, headers = headers, json = json.loads(serialized_data)
     )
 
     assert result.status_code == 404
@@ -77,11 +77,11 @@ def test_module_server_call_blacklisted(
     params = {"msg": "all good?"}
 
     serialized_data, headers = create_request_data(
-        my_keypair, target_key=server_ss58_address, params=params
+        my_keypair, target_key = server_ss58_address, params = params
     )
 
     result = requests.post(
-        method_endpoint, headers=headers, json=json.loads(serialized_data)
+        method_endpoint, headers = headers, json = json.loads(serialized_data)
     )
 
     assert result.status_code == 403
@@ -102,11 +102,11 @@ def test_module_server_call_not_blacklisted(
     params = {"msg": "all good?"}
 
     serialized_data, headers = create_request_data(
-        my_keypair, target_key=server_ss58_address, params=params
+        my_keypair, target_key = server_ss58_address, params = params
     )
 
     result = requests.post(
-        method_endpoint, headers=headers, json=json.loads(serialized_data)
+        method_endpoint, headers = headers, json = json.loads(serialized_data)
     )
 
     assert result.status_code == 200
@@ -131,11 +131,11 @@ def test_module_server_call_whitelisted(
     params = {"msg": "success?"}
 
     serialized_data, headers = create_request_data(
-        my_keypair, target_key=server_ss58_address, params=params
+        my_keypair, target_key = server_ss58_address, params = params
     )
 
     result = requests.post(
-        method_endpoint, headers=headers, json=json.loads(serialized_data)
+        method_endpoint, headers = headers, json = json.loads(serialized_data)
     )
 
     assert result.status_code == 200
@@ -159,11 +159,11 @@ def test_module_server_call_not_whitelisted(
     params = {"msg": "all good?"}
 
     serialized_data, headers = create_request_data(
-        my_keypair, target_key=server_ss58_address, params=params
+        my_keypair, target_key = server_ss58_address, params = params
     )
 
     result = requests.post(
-        method_endpoint, headers=headers, json=json.loads(serialized_data)
+        method_endpoint, headers = headers, json = json.loads(serialized_data)
     )
 
     assert result.status_code == 403
@@ -189,11 +189,11 @@ def test_module_server_call_blacklist_overcomes_whitelist(
     params = {"msg": "all good?"}
 
     serialized_data, headers = create_request_data(
-        my_keypair, target_key=server_ss58_address, params=params
+        my_keypair, target_key = server_ss58_address, params = params
     )
 
     result = requests.post(
-        method_endpoint, headers=headers, json=json.loads(serialized_data)
+        method_endpoint, headers = headers, json = json.loads(serialized_data)
     )
 
     assert result.status_code == 403

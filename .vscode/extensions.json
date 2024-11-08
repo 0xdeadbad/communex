@@ -2,7 +2,6 @@
     "recommendations": [
         "editorconfig.editorconfig",
         "jnoortheen.nix-ide",
-        "ms-python.python",
-        "ms-python.isort"
+        "ms-pyright.pyright",
     ]
 }

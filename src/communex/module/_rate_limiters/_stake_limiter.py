@@ -72,7 +72,7 @@ class StakeLimiter:
 
         self.whitelist = subnets_whitelist
         self.key_ratio = build_keys_refill_rate(
-            get_refill_rate=self.refiller_function
+            get_refill_rate = self.refiller_function
         )
         self.key_ratio_age = monotonic()
         self.max_cache_age = max_cache_age
@@ -87,7 +87,7 @@ class StakeLimiter:
             return 1000
         if monotonic() - self.key_ratio_age > self.max_cache_age:
             self.key_ratio = build_keys_refill_rate(
-                get_refill_rate=self.refiller_function,
+                get_refill_rate = self.refiller_function,
             )
             self.key_ratio_age = monotonic()
         ratio = self.key_ratio.get(key, 0)
@@ -158,7 +158,7 @@ class StakeLimiter:
             return
 
         tokens = min(
-            tokens + new_tokens, max(self.key_ratio.values(), default=0)
+            tokens + new_tokens, max(self.key_ratio.values(), default = 0)
         )  # sink overflow
 
         self._set_tokens(

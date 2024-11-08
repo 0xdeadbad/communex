@@ -26,7 +26,7 @@ def deprecated(func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 class ComxSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="COMX_")
+    model_config = SettingsConfigDict(env_prefix = "COMX_")
     # TODO: improve node lists
     NODE_URLS: list[str] = [
         "wss://api.communeai.net",

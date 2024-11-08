@@ -18,6 +18,6 @@ def test_module_get_endpoints():
 
     assert callable(endpoints["get_uppercased"].fn)
 
-    assert endpoints["get_uppercased"].fn(a_module, msg="example") == {
+    assert endpoints["get_uppercased"].fn(a_module, msg = "example") == {
         "msg": "EXAMPLE"
     }

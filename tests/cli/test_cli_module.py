@@ -8,7 +8,7 @@ from tests.conftest import InvokeCli
 from tests.str_utils import clean
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def module_list_result():
     runner = CliRunner()
     try:

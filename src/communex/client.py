@@ -44,7 +44,7 @@ class CommuneClient:
     Example:
     ```py
     client = CommuneClient()
-    client.query(name='function_name', params=['param1', 'param2'])
+    client.query(name = 'function_name', params=['param1', 'param2'])
     ```
 
     Raises:
@@ -80,7 +80,7 @@ class CommuneClient:
         self.ws_options = ws_options
         for _ in range(num_connections):
             self._connection_queue.put(
-                SubstrateInterface(url, ws_options=ws_options)
+                SubstrateInterface(url, ws_options = ws_options)
             )
 
     @property
@@ -110,14 +110,14 @@ class CommuneClient:
             QueueEmptyError: If no connection is available within the timeout
               period.
         """
-        conn = self._connection_queue.get(timeout=timeout)
+        conn = self._connection_queue.get(timeout = timeout)
         if init:
             conn.init_runtime()  # type: ignore
         try:
             if conn.websocket and conn.websocket.connected:  # type: ignore
                 yield conn
             else:
-                conn = SubstrateInterface(self.url, ws_options=self.ws_options)
+                conn = SubstrateInterface(self.url, ws_options = self.ws_options)
                 yield conn
         finally:
             self._connection_queue.put(conn)
@@ -132,14 +132,14 @@ class CommuneClient:
         prefix_list: list[Any] = []
 
         key_idx = 0
-        with self.get_conn(init=True) as substrate:
+        with self.get_conn(init = True) as substrate:
             for function, params in queries:
                 storage_key = StorageKey.create_from_storage_function(  # type: ignore
                     storage,
                     function,
                     params,
-                    runtime_config=substrate.runtime_config,  # type: ignore
-                    metadata=substrate.metadata,  # type: ignore
+                    runtime_config = substrate.runtime_config,  # type: ignore
+                    metadata = substrate.metadata,  # type: ignore
                 )
 
                 prefix = storage_key.to_hex()
@@ -168,7 +168,7 @@ class CommuneClient:
         Example:
             >>> _get_lists(
                     functions={'storage_module': [('storage_function', ['param1', 'param2'])]},
-                    substrate=substrate_instance
+                    substrate = substrate_instance
                 )
             [('value_type', 'param_types', 'key_hashers', ['param1', 'param2'], 'storage_function'), ...]
         """
@@ -220,7 +220,7 @@ class CommuneClient:
             No explicit return value as results are appended to the provided 'results' list.
         """
         results: list[str | dict[Any, Any]] = []
-        with self.get_conn(init=True) as substrate:
+        with self.get_conn(init = True) as substrate:
             try:
                 substrate.websocket.send(  #  type: ignore
                     json.dumps(batch_payload)
@@ -271,7 +271,7 @@ class CommuneClient:
             A list of smaller request batches.
 
         Example:
-            >>> _make_request_smaller(batch_request=[('method1', 'params1'), ('method2', 'params2')], max_size=1000)
+            >>> _make_request_smaller(batch_request=[('method1', 'params1'), ('method2', 'params2')], max_size = 1000)
             [[('method1', 'params1')], [('method2', 'params2')]]
         """
         assert len(prefix_list) == len(fun_params) == len(batch_request)
@@ -380,9 +380,9 @@ class CommuneClient:
                 futures.append(
                     executor.submit(
                         self._send_batch,
-                        batch_payload=batch_payload,
-                        request_ids=request_ids,
-                        extract_result=extract_result,
+                        batch_payload = batch_payload,
+                        request_ids = request_ids,
+                        extract_result = extract_result,
                     )
                 )
             for future in futures:
@@ -463,9 +463,9 @@ class CommuneClient:
                 futures.append(
                     executor.submit(
                         self._send_batch,
-                        batch_payload=batch_payload,
-                        request_ids=request_ids,
-                        extract_result=extract_result,
+                        batch_payload = batch_payload,
+                        request_ids = request_ids,
+                        extract_result = extract_result,
                     )
                 )
             for future in futures:
@@ -504,8 +504,8 @@ class CommuneClient:
                     function_parameters=[...],
                     last_keys=[...],
                     prefix_list=[...],
-                    substrate=substrate_instance,
-                    block_hash="0x123..."
+                    substrate = substrate_instance,
+                    block_hash = "0x123..."
                 )
             {'storage_function_name': {decoded_key: decoded_value, ...}, ...}
         """
@@ -556,7 +556,7 @@ class CommuneClient:
             value_type, param_types, key_hashers, params, storage_function = (
                 fun_params_tuple
             )
-            with self.get_conn(init=True) as substrate:
+            with self.get_conn(init = True) as substrate:
                 for item in changes:
                     # Determine type string
                     key_type_string: list[Any] = []
@@ -567,10 +567,10 @@ class CommuneClient:
                         key_type_string.append(param_types[n])
 
                     item_key_obj = substrate.decode_scale(  # type: ignore
-                        type_string=f"({', '.join(key_type_string)})",
-                        scale_bytes="0x" + item[0][len(prefix) :],
-                        return_scale_obj=True,
-                        block_hash=block_hash,
+                        type_string = f"({', '.join(key_type_string)})",
+                        scale_bytes = "0x" + item[0][len(prefix) :],
+                        return_scale_obj = True,
+                        block_hash = block_hash,
                     )
                     # strip key_hashers to use as item key
                     if len(param_types) - len(params) == 1:
@@ -584,10 +584,10 @@ class CommuneClient:
                         )
 
                     item_value = substrate.decode_scale(  # type: ignore
-                        type_string=value_type,
-                        scale_bytes=item[1],
-                        return_scale_obj=True,
-                        block_hash=block_hash,
+                        type_string = value_type,
+                        scale_bytes = item[1],
+                        return_scale_obj = True,
+                        block_hash = block_hash,
                     )
                     result_dict.setdefault(storage_function, {})
                     key = get_item_key_value(item_key)  # type: ignore
@@ -619,18 +619,18 @@ class CommuneClient:
         result: dict[str, str] = {}
         if not functions:
             raise Exception("No result")
-        with self.get_conn(init=True) as substrate:
+        with self.get_conn(init = True) as substrate:
             for module, queries in functions.items():
                 storage_keys: list[Any] = []
                 for fn, params in queries:
                     storage_function = substrate.create_storage_key(  # type: ignore
-                        pallet=module, storage_function=fn, params=params
+                        pallet = module, storage_function = fn, params = params
                     )
                     storage_keys.append(storage_function)
 
                 block_hash = substrate.get_block_hash()
                 responses: list[Any] = substrate.query_multi(  # type: ignore
-                    storage_keys=storage_keys, block_hash=block_hash
+                    storage_keys = storage_keys, block_hash = block_hash
                 )
 
                 for item in responses:
@@ -677,7 +677,7 @@ class CommuneClient:
             send, prefix_list = self._get_storage_keys(
                 storage, queries, block_hash
             )
-            with self.get_conn(init=True) as substrate:
+            with self.get_conn(init = True) as substrate:
                 function_parameters = self._get_lists(
                     storage, queries, substrate
                 )
@@ -700,7 +700,7 @@ class CommuneClient:
             return chunks_response, chunks_info
 
         if not block_hash:
-            with self.get_conn(init=True) as substrate:
+            with self.get_conn(init = True) as substrate:
                 block_hash = substrate.get_block_hash()
         for storage, queries in functions.items():
             chunks, chunks_info = get_page()
@@ -823,12 +823,12 @@ class CommuneClient:
                 wait_for_finalization = self.wait_for_finalization
 
             call = substrate.compose_call(  # type: ignore
-                call_module=module, call_function=fn, call_params=params
+                call_module = module, call_function = fn, call_params = params
             )
             if sudo:
                 call = substrate.compose_call(  # type: ignore
-                    call_module="Sudo",
-                    call_function="sudo",
+                    call_module = "Sudo",
+                    call_function = "sudo",
                     call_params={
                         "call": call.value,  # type: ignore
                     },
@@ -837,16 +837,16 @@ class CommuneClient:
             if not unsigned:
                 assert key is not None
                 extrinsic = substrate.create_signed_extrinsic(  # type: ignore
-                    call=call,
-                    keypair=key,
+                    call = call,
+                    keypair = key,
                 )
             else:
-                extrinsic = substrate.create_unsigned_extrinsic(call=call)  # type: ignore
+                extrinsic = substrate.create_unsigned_extrinsic(call = call)  # type: ignore
 
             response = substrate.submit_extrinsic(
-                extrinsic=extrinsic,
-                wait_for_inclusion=wait_for_inclusion,
-                wait_for_finalization=wait_for_finalization,
+                extrinsic = extrinsic,
+                wait_for_inclusion = wait_for_inclusion,
+                wait_for_finalization = wait_for_finalization,
             )
         if wait_for_inclusion:
             if not response.is_success:
@@ -913,12 +913,12 @@ class CommuneClient:
 
             # prepares the `GenericCall` object
             call = substrate.compose_call(  # type: ignore
-                call_module=module, call_function=fn, call_params=params
+                call_module = module, call_function = fn, call_params = params
             )
             if sudo:
                 call = substrate.compose_call(  # type: ignore
-                    call_module="Sudo",
-                    call_function="sudo",
+                    call_module = "Sudo",
+                    call_function = "sudo",
                     call_params={
                         "call": call.value,  # type: ignore
                     },
@@ -939,16 +939,16 @@ class CommuneClient:
 
             # send the multisig extrinsic
             extrinsic = substrate.create_multisig_extrinsic(  # type: ignore
-                call=call,  # type: ignore
-                keypair=key,
-                multisig_account=multisig_acc,  # type: ignore
-                era=era,  # type: ignore
+                call = call,  # type: ignore
+                keypair = key,
+                multisig_account = multisig_acc,  # type: ignore
+                era = era,  # type: ignore
             )  # type: ignore
 
             response = substrate.submit_extrinsic(
-                extrinsic=extrinsic,
-                wait_for_inclusion=wait_for_inclusion,
-                wait_for_finalization=wait_for_finalization,
+                extrinsic = extrinsic,
+                wait_for_inclusion = wait_for_inclusion,
+                wait_for_finalization = wait_for_finalization,
             )
 
         if wait_for_inclusion:
@@ -987,7 +987,7 @@ class CommuneClient:
         params = {"dest": dest, "value": amount}
 
         return self.compose_call(
-            module="Balances", fn="transfer_keep_alive", params=params, key=key
+            module = "Balances", fn = "transfer_keep_alive", params = params, key = key
         )
 
     def transfer_multiple(
@@ -1031,10 +1031,10 @@ class CommuneClient:
         }
 
         return self.compose_call(
-            module="SubspaceModule",
-            fn="transfer_multiple",
-            params=params,
-            key=key,
+            module = "SubspaceModule",
+            fn = "transfer_multiple",
+            params = params,
+            key = key,
         )
 
     def stake(
@@ -1063,7 +1063,7 @@ class CommuneClient:
 
         params = {"amount": amount, "module_key": dest}
 
-        return self.compose_call(fn="add_stake", params=params, key=key)
+        return self.compose_call(fn = "add_stake", params = params, key = key)
 
     def unstake(
         self,
@@ -1090,7 +1090,7 @@ class CommuneClient:
         """
 
         params = {"amount": amount, "module_key": dest}
-        return self.compose_call(fn="remove_stake", params=params, key=key)
+        return self.compose_call(fn = "remove_stake", params = params, key = key)
 
     def update_module(
         self,
@@ -1132,7 +1132,7 @@ class CommuneClient:
             "metadata": metadata,
         }
 
-        response = self.compose_call("update_module", params=params, key=key)
+        response = self.compose_call("update_module", params = params, key = key)
 
         return response
 
@@ -1175,7 +1175,7 @@ class CommuneClient:
             "metadata": metadata,
         }
 
-        response = self.compose_call("register", params=params, key=key)
+        response = self.compose_call("register", params = params, key = key)
         return response
 
     def deregister_module(self, key: Keypair, netuid: int) -> ExtrinsicReceipt:
@@ -1195,7 +1195,7 @@ class CommuneClient:
 
         params = {"netuid": netuid}
 
-        response = self.compose_call("deregister", params=params, key=key)
+        response = self.compose_call("deregister", params = params, key = key)
 
         return response
 
@@ -1222,7 +1222,7 @@ class CommuneClient:
             "metadata": metadata,
         }
 
-        response = self.compose_call("register_subnet", params=params, key=key)
+        response = self.compose_call("register_subnet", params = params, key = key)
 
         return response
 
@@ -1262,7 +1262,7 @@ class CommuneClient:
             "netuid": netuid,
         }
 
-        response = self.compose_call("set_weights", params=params, key=key)
+        response = self.compose_call("set_weights", params = params, key = key)
 
         return response
 
@@ -1298,9 +1298,9 @@ class CommuneClient:
             general_params["metadata"] = general_params["subnet_metadata"]
 
         response = self.compose_call(
-            fn="update_subnet",
-            params=general_params,
-            key=key,
+            fn = "update_subnet",
+            params = general_params,
+            key = key,
         )
 
         return response
@@ -1339,7 +1339,7 @@ class CommuneClient:
             "new_module_key": dest_module_address,
         }
 
-        response = self.compose_call("transfer_stake", key=key, params=params)
+        response = self.compose_call("transfer_stake", key = key, params = params)
 
         return response
 
@@ -1377,7 +1377,7 @@ class CommuneClient:
         params = {"module_keys": keys, "amounts": amounts}
 
         response = self.compose_call(
-            "remove_stake_multiple", params=params, key=key
+            "remove_stake_multiple", params = params, key = key
         )
 
         return response
@@ -1418,7 +1418,7 @@ class CommuneClient:
         }
 
         response = self.compose_call(
-            "add_stake_multiple", params=params, key=key
+            "add_stake_multiple", params = params, key = key
         )
 
         return response
@@ -1456,7 +1456,7 @@ class CommuneClient:
         params = {"keys": keys, "shares": shares}
 
         response = self.compose_call(
-            "add_profit_shares", params=params, key=key
+            "add_profit_shares", params = params, key = key
         )
 
         return response
@@ -1493,10 +1493,10 @@ class CommuneClient:
 
         # general_params["burn_config"] = json.dumps(general_params["burn_config"])
         response = self.compose_call(
-            fn="add_subnet_params_proposal",
-            params=general_params,
-            key=key,
-            module="GovernanceModule",
+            fn = "add_subnet_params_proposal",
+            params = general_params,
+            key = key,
+            module = "GovernanceModule",
         )
 
         return response
@@ -1509,10 +1509,10 @@ class CommuneClient:
         params = {"data": cid}
 
         response = self.compose_call(
-            fn="add_global_custom_proposal",
-            params=params,
-            key=key,
-            module="GovernanceModule",
+            fn = "add_global_custom_proposal",
+            params = params,
+            key = key,
+            module = "GovernanceModule",
         )
         return response
 
@@ -1544,10 +1544,10 @@ class CommuneClient:
         }
 
         response = self.compose_call(
-            fn="add_subnet_custom_proposal",
-            params=params,
-            key=key,
-            module="GovernanceModule",
+            fn = "add_subnet_custom_proposal",
+            params = params,
+            key = key,
+            module = "GovernanceModule",
         )
 
         return response
@@ -1586,10 +1586,10 @@ class CommuneClient:
         general_params["data"] = cid
 
         response = self.compose_call(
-            fn="add_global_params_proposal",
-            params=general_params,
-            key=key,
-            module="GovernanceModule",
+            fn = "add_global_params_proposal",
+            params = general_params,
+            key = key,
+            module = "GovernanceModule",
         )
 
         return response
@@ -1620,9 +1620,9 @@ class CommuneClient:
 
         response = self.compose_call(
             "vote_proposal",
-            key=key,
-            params=params,
-            module="GovernanceModule",
+            key = key,
+            params = params,
+            module = "GovernanceModule",
         )
 
         return response
@@ -1654,9 +1654,9 @@ class CommuneClient:
 
         response = self.compose_call(
             "remove_vote_proposal",
-            key=key,
-            params=params,
-            module="GovernanceModule",
+            key = key,
+            params = params,
+            module = "GovernanceModule",
         )
 
         return response
@@ -1678,8 +1678,8 @@ class CommuneClient:
         response = self.compose_call(
             "enable_vote_power_delegation",
             params={},
-            key=key,
-            module="GovernanceModule",
+            key = key,
+            module = "GovernanceModule",
         )
 
         return response
@@ -1701,8 +1701,8 @@ class CommuneClient:
         response = self.compose_call(
             "disable_vote_power_delegation",
             params={},
-            key=key,
-            module="GovernanceModule",
+            key = key,
+            module = "GovernanceModule",
         )
 
         return response
@@ -1729,9 +1729,9 @@ class CommuneClient:
 
         response = self.compose_call(
             "add_dao_application",
-            module="GovernanceModule",
-            key=key,
-            params=params,
+            module = "GovernanceModule",
+            key = key,
+            params = params,
         )
 
         return response
@@ -1739,9 +1739,9 @@ class CommuneClient:
     def query_map_curator_applications(self) -> dict[str, dict[str, str]]:
         query_result = self.query_map(
             "CuratorApplications",
-            module="GovernanceModule",
+            module = "GovernanceModule",
             params=[],
-            extract_value=False,
+            extract_value = False,
         )
         applications = query_result.get("CuratorApplications", {})
         return applications
@@ -1764,7 +1764,7 @@ class CommuneClient:
         """
 
         return self.query_map(
-            "Proposals", extract_value=extract_value, module="GovernanceModule"
+            "Proposals", extract_value = extract_value, module = "GovernanceModule"
         )["Proposals"]
 
     def query_map_weights(
@@ -1787,7 +1787,7 @@ class CommuneClient:
         """
 
         weights_dict = self.query_map(
-            "Weights", [netuid], extract_value=extract_value
+            "Weights", [netuid], extract_value = extract_value
         ).get("Weights")
         return weights_dict
 
@@ -1812,7 +1812,7 @@ class CommuneClient:
         Raises:
             QueryError: If the query to the network fails or is invalid.
         """
-        return self.query_map("Keys", [netuid], extract_value=extract_value)[
+        return self.query_map("Keys", [netuid], extract_value = extract_value)[
             "Keys"
         ]
 
@@ -1834,7 +1834,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("Address", [netuid], extract_value=extract_value)[
+        return self.query_map("Address", [netuid], extract_value = extract_value)[
             "Address"
         ]
 
@@ -1854,7 +1854,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("Emission", extract_value=extract_value)[
+        return self.query_map("Emission", extract_value = extract_value)[
             "Emission"
         ]
 
@@ -1872,8 +1872,8 @@ class CommuneClient:
         """
         return self.query_map(
             "PendingEmission",
-            extract_value=extract_value,
-            module="SubnetEmissionModule",
+            extract_value = extract_value,
+            module = "SubnetEmissionModule",
         )["PendingEmission"]
 
     def query_map_subnet_emission(
@@ -1893,8 +1893,8 @@ class CommuneClient:
 
         return self.query_map(
             "SubnetEmission",
-            extract_value=extract_value,
-            module="SubnetEmissionModule",
+            extract_value = extract_value,
+            module = "SubnetEmissionModule",
         )["SubnetEmission"]
 
     def query_map_subnet_consensus(
@@ -1914,8 +1914,8 @@ class CommuneClient:
 
         return self.query_map(
             "SubnetConsensusType",
-            extract_value=extract_value,
-            module="SubnetEmissionModule",
+            extract_value = extract_value,
+            module = "SubnetEmissionModule",
         )["SubnetConsensusType"]
 
     def query_map_incentive(
@@ -1934,7 +1934,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("Incentive", extract_value=extract_value)[
+        return self.query_map("Incentive", extract_value = extract_value)[
             "Incentive"
         ]
 
@@ -1954,7 +1954,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("Dividends", extract_value=extract_value)[
+        return self.query_map("Dividends", extract_value = extract_value)[
             "Dividends"
         ]
 
@@ -1978,7 +1978,7 @@ class CommuneClient:
         """
 
         return self.query_map(
-            "RegistrationBlock", [netuid], extract_value=extract_value
+            "RegistrationBlock", [netuid], extract_value = extract_value
         )["RegistrationBlock"]
 
     def query_map_lastupdate(
@@ -1996,7 +1996,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("LastUpdate", extract_value=extract_value)[
+        return self.query_map("LastUpdate", extract_value = extract_value)[
             "LastUpdate"
         ]
 
@@ -2020,7 +2020,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        result = self.query_map("StakeFrom", [], extract_value=extract_value)[
+        result = self.query_map("StakeFrom", [], extract_value = extract_value)[
             "StakeFrom"
         ]
 
@@ -2046,7 +2046,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        result = self.query_map("StakeTo", [], extract_value=extract_value)[
+        result = self.query_map("StakeTo", [], extract_value = extract_value)[
             "StakeTo"
         ]
         return transform_stake_dmap(result)
@@ -2071,7 +2071,7 @@ class CommuneClient:
         """
 
         return self.query_map(
-            "DelegationFee", [netuid], extract_value=extract_value
+            "DelegationFee", [netuid], extract_value = extract_value
         )["DelegationFee"]
 
     def query_map_tempo(self, extract_value: bool = False) -> dict[int, int]:
@@ -2088,7 +2088,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("Tempo", extract_value=extract_value)["Tempo"]
+        return self.query_map("Tempo", extract_value = extract_value)["Tempo"]
 
     def query_map_immunity_period(self, extract_value: bool) -> dict[int, int]:
         """
@@ -2105,7 +2105,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("ImmunityPeriod", extract_value=extract_value)[
+        return self.query_map("ImmunityPeriod", extract_value = extract_value)[
             "ImmunityPeriod"
         ]
 
@@ -2127,7 +2127,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("MinAllowedWeights", extract_value=extract_value)[
+        return self.query_map("MinAllowedWeights", extract_value = extract_value)[
             "MinAllowedWeights"
         ]
 
@@ -2149,7 +2149,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("MaxAllowedWeights", extract_value=extract_value)[
+        return self.query_map("MaxAllowedWeights", extract_value = extract_value)[
             "MaxAllowedWeights"
         ]
 
@@ -2173,7 +2173,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("MaxAllowedUids", extract_value=extract_value)[
+        return self.query_map("MaxAllowedUids", extract_value = extract_value)[
             "MaxAllowedUids"
         ]
 
@@ -2194,7 +2194,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("MinStake", extract_value=extract_value)[
+        return self.query_map("MinStake", extract_value = extract_value)[
             "MinStake"
         ]
 
@@ -2214,7 +2214,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("MaxStake", extract_value=extract_value)[
+        return self.query_map("MaxStake", extract_value = extract_value)[
             "MaxStake"
         ]
 
@@ -2232,7 +2232,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("Founder", extract_value=extract_value)["Founder"]
+        return self.query_map("Founder", extract_value = extract_value)["Founder"]
 
     def query_map_founder_share(
         self, extract_value: bool = False
@@ -2250,7 +2250,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("FounderShare", extract_value=extract_value)[
+        return self.query_map("FounderShare", extract_value = extract_value)[
             "FounderShare"
         ]
 
@@ -2271,7 +2271,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("IncentiveRatio", extract_value=extract_value)[
+        return self.query_map("IncentiveRatio", extract_value = extract_value)[
             "IncentiveRatio"
         ]
 
@@ -2292,7 +2292,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("TrustRatio", extract_value=extract_value)[
+        return self.query_map("TrustRatio", extract_value = extract_value)[
             "TrustRatio"
         ]
 
@@ -2314,7 +2314,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("VoteModeSubnet", extract_value=extract_value)[
+        return self.query_map("VoteModeSubnet", extract_value = extract_value)[
             "VoteModeSubnet"
         ]
 
@@ -2336,8 +2336,8 @@ class CommuneClient:
 
         return self.query_map(
             "LegitWhitelist",
-            module="GovernanceModule",
-            extract_value=extract_value,
+            module = "GovernanceModule",
+            extract_value = extract_value,
         )["LegitWhitelist"]
 
     def query_map_subnet_names(
@@ -2357,7 +2357,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("SubnetNames", extract_value=extract_value)[
+        return self.query_map("SubnetNames", extract_value = extract_value)[
             "SubnetNames"
         ]
 
@@ -2380,9 +2380,9 @@ class CommuneClient:
 
         return self.query_map(
             "Account",
-            module="System",
-            extract_value=extract_value,
-            block_hash=block_hash,
+            module = "System",
+            extract_value = extract_value,
+            block_hash = block_hash,
         )["Account"]
 
     def query_map_registration_blocks(
@@ -2405,7 +2405,7 @@ class CommuneClient:
         """
 
         return self.query_map(
-            "RegistrationBlock", [netuid], extract_value=extract_value
+            "RegistrationBlock", [netuid], extract_value = extract_value
         )["RegistrationBlock"]
 
     def query_map_name(
@@ -2427,7 +2427,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query_map("Name", [netuid], extract_value=extract_value)[
+        return self.query_map("Name", [netuid], extract_value = extract_value)[
             "Name"
         ]
 
@@ -2484,7 +2484,7 @@ class CommuneClient:
         )
 
     def get_dao_treasury_address(self) -> Ss58Address:
-        return self.query("DaoTreasuryAddress", module="GovernanceModule")
+        return self.query("DaoTreasuryAddress", module = "GovernanceModule")
 
     def get_max_allowed_weights(self, netuid: int = 0) -> int:
         """
@@ -2559,7 +2559,7 @@ class CommuneClient:
         return self.query("SubnetNames", params=[netuid])
 
     def get_global_dao_treasury(self):
-        return self.query("GlobalDaoTreasury", module="GovernanceModule")
+        return self.query("GlobalDaoTreasury", module = "GovernanceModule")
 
     def get_n(self, netuid: int = 0) -> int:
         """
@@ -2610,7 +2610,7 @@ class CommuneClient:
         """
 
         return self.query(
-            "TotalIssuance", module="Balances", block_hash=block_hash
+            "TotalIssuance", module = "Balances", block_hash = block_hash
         )
 
     def get_total_stake(self, block_hash: str | None = None) -> int:
@@ -2626,7 +2626,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query("TotalStake", block_hash=block_hash)
+        return self.query("TotalStake", block_hash = block_hash)
 
     def get_registrations_per_block(self):
         """
@@ -2746,7 +2746,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        return self.query("UnitEmission", module="SubnetEmissionModule")
+        return self.query("UnitEmission", module = "SubnetEmissionModule")
 
     def get_tx_rate_limit(self) -> int:
         """
@@ -3032,7 +3032,7 @@ class CommuneClient:
         """
 
         # Has to use query map in order to iterate through the storage prefix.
-        return self.query_map("StakeFrom", [key], extract_value=False).get(
+        return self.query_map("StakeFrom", [key], extract_value = False).get(
             "StakeFrom", {}
         )
 
@@ -3057,7 +3057,7 @@ class CommuneClient:
         """
 
         # Has to use query map in order to iterate through the storage prefix.
-        return self.query_map("StakeTo", [key], extract_value=False).get(
+        return self.query_map("StakeTo", [key], extract_value = False).get(
             "StakeTo", {}
         )
 
@@ -3078,7 +3078,7 @@ class CommuneClient:
             QueryError: If the query to the network fails or is invalid.
         """
 
-        result = self.query("Account", module="System", params=[addr])
+        result = self.query("Account", module = "System", params=[addr])
 
         return result["data"]["free"]
 
@@ -3128,7 +3128,7 @@ class CommuneClient:
 
     def get_voting_power_delegators(self) -> list[Ss58Address]:
         result = self.query(
-            "NotDelegatingVotingPower", [], module="GovernanceModule"
+            "NotDelegatingVotingPower", [], module = "GovernanceModule"
         )
         return result
 
@@ -3142,18 +3142,18 @@ class CommuneClient:
         params = {"dest": dest, "value": amount_nano, "data": data}
 
         return self.compose_call(
-            module="GovernanceModule",
-            fn="add_transfer_dao_treasury_proposal",
-            params=params,
-            key=key,
+            module = "GovernanceModule",
+            fn = "add_transfer_dao_treasury_proposal",
+            params = params,
+            key = key,
         )
 
     def delegate_rootnet_control(self, key: Keypair, dest: Ss58Address):
         params = {"origin": key, "target": dest}
 
         return self.compose_call(
-            module="SubspaceModule",
-            fn="delegate_rootnet_control",
-            params=params,
-            key=key,
+            module = "SubspaceModule",
+            fn = "delegate_rootnet_control",
+            params = params,
+            key = key,
         )

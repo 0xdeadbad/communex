@@ -20,8 +20,8 @@ def encrypt_weights(
 ) -> bytes:
     # Create RSA public key
     public_numbers = rsa.RSAPublicNumbers(
-        n=int.from_bytes(key[0], "big"),
-        e=int.from_bytes(key[1], "big"),
+        n = int.from_bytes(key[0], "big"),
+        e = int.from_bytes(key[1], "big"),
     )
     rsa_key = public_numbers.public_key()
 
@@ -128,7 +128,7 @@ fvRuW5JF+WZtGddyU4751JNNNhmwbwGmsmphy7EOHHaC
     # ======================================================================== #
 
     private_key = crypt_serialization.load_pem_private_key(
-        rsa_key_pem, password=None
+        rsa_key_pem, password = None
     )
     assert isinstance(private_key, rsa.RSAPrivateKey)
     pub_key_n = bytes_from_hex(pub_key_n_hex)

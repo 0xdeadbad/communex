@@ -19,7 +19,7 @@ R = TypeVar("R")
 
 
 def iso_timestamp_now() -> str:
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz = datetime.timezone.utc)
     iso_now = now.isoformat()
     return iso_now
 
@@ -35,10 +35,10 @@ def log(
     print(
         f"[{iso_timestamp_now()}] " + msg,
         *values,
-        sep=sep,
-        end=end,
-        file=file,
-        flush=flush,
+        sep = sep,
+        end = end,
+        file = file,
+        flush = flush,
     )
 
 
@@ -48,7 +48,7 @@ def log_reffusal(key: str, reason: str):
 
 def json_error(code: int, message: str):
     return JSONResponse(
-        status_code=code, content={"error": {"code": code, "message": message}}
+        status_code = code, content={"error": {"code": code, "message": message}}
     )
 
 
@@ -98,5 +98,5 @@ def retry(max_retries: int | None, retry_exceptions: list[type]):
 @retry(5, [Exception])
 def make_client(node_url: str):
     return CommuneClient(
-        url=node_url, num_connections=1, wait_for_finalization=False
+        url = node_url, num_connections = 1, wait_for_finalization = False
     )

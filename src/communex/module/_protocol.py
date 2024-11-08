@@ -15,7 +15,7 @@ def serialize(data: Any) -> bytes:
 
 
 def iso_timestamp_now() -> str:
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz = datetime.timezone.utc)
     iso_now = now.isoformat()
     return iso_now
 

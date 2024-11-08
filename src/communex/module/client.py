@@ -40,13 +40,13 @@ class ModuleClient:
             self.key, target_key, params
         )
 
-        out = aiohttp.ClientTimeout(total=timeout)
+        out = aiohttp.ClientTimeout(total = timeout)
         try:
-            async with aiohttp.ClientSession(timeout=out) as session:
+            async with aiohttp.ClientSession(timeout = out) as session:
                 async with session.post(
                     create_method_endpoint(self.host, self.port, fn),
-                    json=json.loads(serialized_data),
-                    headers=headers,
+                    json = json.loads(serialized_data),
+                    headers = headers,
                 ) as response:
                     match response.status:
                         case 200:
@@ -59,7 +59,7 @@ class ModuleClient:
                     match response.content_type:
                         case "application/json":
                             result = await asyncio.wait_for(
-                                response.json(), timeout=timeout
+                                response.json(), timeout = timeout
                             )
                             # TODO: deserialize result
                             return result

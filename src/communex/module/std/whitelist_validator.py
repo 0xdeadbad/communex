@@ -19,9 +19,9 @@ def keys_to_uids(
 
 def validaiton(client: CommuneClient, key: Keypair):
     # Query the modules, nominated by DAO.
-    keys = client.query_map_key(netuid=GENERAL_NETUID)
+    keys = client.query_map_key(netuid = GENERAL_NETUID)
     legit_whitelist = client.query_map(
-        "LegitWhitelist", params=[], extract_value=False
+        "LegitWhitelist", params=[], extract_value = False
     )["LegitWhitelist"]
     # TODO: test on production query, to verify the format, now I am going to assume it is a dict.
     target_keys = list(legit_whitelist.keys())
@@ -29,7 +29,7 @@ def validaiton(client: CommuneClient, key: Keypair):
     # WIP, rigt now assuming same weights
     weights = [1 for _ in uids_map]
 
-    client.vote(key, uids=uids_map, weights=weights, netuid=GENERAL_NETUID)
+    client.vote(key, uids = uids_map, weights = weights, netuid = GENERAL_NETUID)
 
 
 def main(

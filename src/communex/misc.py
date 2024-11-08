@@ -429,14 +429,14 @@ def local_keys_allbalance(
     key2balance = {
         k: v
         for k, v in sorted(
-            key2balance.items(), key=lambda item: item[1], reverse=True
+            key2balance.items(), key = lambda item: item[1], reverse = True
         )
     }
 
     key2stake = {
         k: v
         for k, v in sorted(
-            key2stake.items(), key=lambda item: item[1], reverse=True
+            key2stake.items(), key = lambda item: item[1], reverse = True
         )
     }
 
@@ -446,5 +446,5 @@ def local_keys_allbalance(
 if __name__ == "__main__":
     from communex._common import get_node_url
 
-    client = CommuneClient(get_node_url(use_testnet=True))
+    client = CommuneClient(get_node_url(use_testnet = True))
     get_global_params(client)

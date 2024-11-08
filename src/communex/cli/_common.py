@@ -4,6 +4,9 @@ from typing import Any, Callable, Mapping, TypeVar, cast
 
 import rich
 import rich.prompt
+
+from rich.prompt import Prompt
+
 import typer
 from rich import box
 from rich.console import Console
@@ -89,7 +92,8 @@ class CustomCtx:
         self._com_client = com_client
 
         self.password_manager = CliPasswordProvider(
-            self.settings, self.prompt_secret
+            settings = self.settings,
+            prompt_secret = self.prompt_secret
         )
 
         self.use_json_output = ctx.obj.output_json
@@ -103,11 +107,12 @@ class CustomCtx:
         self.console_err = Console(stderr = True, no_color = not self.color)
 
     def get_use_testnet(self) -> bool:
-        return self.ctx.obj.use_testnet
+        return self.use_testnet
 
     def get_node_url(self) -> str:
         use_testnet = self.get_use_testnet()
-        return get_node_url(self.settings, use_testnet=use_testnet)
+
+        return get_node_url(self.settings, use_testnet = use_testnet)
 
     def com_client(self) -> CommuneClient:
         use_testnet = self.use_testnet
@@ -158,49 +163,52 @@ class CustomCtx:
         **kwargs: dict[str, Any],
     ) -> None:
         message = f"ERROR: {message}"
-        self.console_err.print(message, *args, style="bold red", **kwargs)  # type: ignore
+        self.console_err.print(message, *args, style = "bold red", **kwargs)  # type: ignore
 
     def progress_status(self, message: str = ''):
         return self.console_err.status(message)
 
     def confirm(self, message: str) -> bool:
-        if self.ctx.obj.yes_to_all:
+        if self.use_yes_to_all:
             print(f"{message} (--yes)")
             return True
-        return typer.confirm(message, err=True)
+
+        return typer.confirm(message, err = True)
 
     def prompt_secret(self, message: str) -> str:
-        return rich.prompt.Prompt.ask(
-            message, password=True, console=self.console_err
+        return Prompt.ask(
+            message,
+            password = True,
+            console = self.console_err
         )
 
     def load_key(self, key: str, password: str | None = None) -> Keypair:
         try:
             keypair = try_classic_load_key(
-                key, password, password_provider=self.password_manager
+                key, password, password_provider = self.password_manager
             )
             return keypair
         except PasswordNotProvidedError:
             self.error(f"Password not provided for key '{key}'")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code = 1)
         except InvalidPasswordError:
             self.error(f"Incorrect password for key '{key}'")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code = 1)
 
     def resolve_key_ss58(
         self, key: Ss58Address | Keypair | str, password: str | None = None
     ) -> Ss58Address:
         try:
             address = resolve_key_ss58_encrypted(
-                key, password, password_provider=self.password_manager
+                key, password, password_provider = self.password_manager
             )
             return address
         except PasswordNotProvidedError:
             self.error(f"Password not provided for key '{key}'")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code = 1)
         except InvalidPasswordError:
             self.error(f"Incorrect password for key '{key}'")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code = 1)
 
 
 def make_custom_context(ctx: typer.Context) -> CustomCtx:
@@ -211,18 +219,6 @@ def make_custom_context(ctx: typer.Context) -> CustomCtx:
 
 
 # Formatting
-
-
-def eprint(e: Any) -> None:
-    """
-    Pretty prints an error.
-    """
-
-    console = Console()
-
-    console.print(f"[bold red]ERROR: {e}", style="italic")
-
-
 def print_table_from_plain_dict(
     result: Mapping[str, str | int | float | dict[Any, Any] | Ss58Address],
     column_names: list[str],
@@ -232,10 +228,10 @@ def print_table_from_plain_dict(
     Creates a table for a plain dictionary.
     """
 
-    table = Table(show_header=True, header_style="bold magenta")
+    table = Table(show_header = True, header_style = "bold magenta")
 
     for name in column_names:
-        table.add_column(name, style="white", vertical="middle")
+        table.add_column(name, style = "white", vertical = "middle")
 
     # Add non-dictionary values to the table first
     for key, value in result.items():
@@ -246,9 +242,9 @@ def print_table_from_plain_dict(
     for key, value in result.items():
         if isinstance(value, dict):
             subtable = Table(
-                show_header=False,
+                show_header = False,
                 padding=(0, 0, 0, 0),
-                border_style="bright_black",
+                border_style = "bright_black",
             )
             for subkey, subvalue in value.items():
                 subtable.add_row(f"{subkey}: {subvalue}")
@@ -256,21 +252,20 @@ def print_table_from_plain_dict(
 
     console.print(table)
 
-
 def print_table_standardize(
     result: dict[str, list[Any]], console: Console
 ) -> None:
     """
     Creates a table for a standardized dictionary.
     """
-    table = Table(show_header=True, header_style="bold magenta")
+    table = Table(show_header = True, header_style = "bold magenta")
 
     for key in result.keys():
-        table.add_column(key, style="white")
+        table.add_column(key, style = "white")
     rows = [*result.values()]
     zipped_rows = [list(column) for column in zip(*rows)]
     for row in zipped_rows:
-        table.add_row(*row, style="white")
+        table.add_row(*row, style = "white")
 
     console.print(table)
 
@@ -329,12 +324,12 @@ def print_module_info(
 
     # Transform the module dictionary to have immunity_period
     table = Table(
-        show_header=True,
-        header_style="bold magenta",
-        box=box.DOUBLE_EDGE,
-        title=title,
-        caption_style="chartreuse3",
-        title_style="bold magenta",
+        show_header = True,
+        header_style = "bold magenta",
+        box = box.DOUBLE_EDGE,
+        title = title,
+        caption_style = "chartreuse3",
+        title_style = "bold magenta",
     )
 
     to_exclude = ["stake_from", "last_update", "regblock"]
@@ -345,7 +340,7 @@ def print_module_info(
     sample_mod = tranformed_modules[0]
     for key in sample_mod.keys():
         # add columns
-        table.add_column(key, style="white")
+        table.add_column(key, style = "white")
 
     total_stake = 0
     total_balance = 0
@@ -417,7 +412,9 @@ def remove_none_values(data: dict[T, V | None]) -> dict[T, V]:
 def transform_subnet_params(params: dict[int, SubnetParamsWithEmission]):
     """Transform subnet params to be human readable."""
     params_ = cast(dict[int, Any], params)
+
     display_params = remove_none_values(params_)
+
     display_params = dict_from_nano(
         display_params,
         [

@@ -23,7 +23,7 @@ from communex.module.server import ModuleServer
 from communex.types import Ss58Address
 from communex.util import is_ip_valid
 
-module_app = typer.Typer(no_args_is_help=True)
+module_app = typer.Typer(no_args_is_help = True)
 
 
 def list_to_ss58(str_list: list[str] | None) -> list[Ss58Address] | None:
@@ -59,7 +59,7 @@ def register(
     if metadata and len(metadata) > 59:
         raise ValueError("Metadata must be less than 60 characters")
 
-    burn = client.get_burn(netuid=netuid)
+    burn = client.get_burn(netuid = netuid)
 
     if netuid != 0:
         do_burn = context.confirm(
@@ -78,10 +78,10 @@ def register(
 
         response = client.register_module(
             resolved_key,
-            name=name,
-            subnet=subnet_name,
-            address=address,
-            metadata=metadata,
+            name = name,
+            subnet = subnet_name,
+            address = address,
+            metadata = metadata,
         )
 
         if response.is_success:
@@ -103,7 +103,7 @@ def deregister(ctx: Context, key: str, netuid: int):
     with context.progress_status(
         f"Deregistering your module on subnet {netuid}..."
     ):
-        response = client.deregister_module(key=resolved_key, netuid=netuid)
+        response = client.deregister_module(key = resolved_key, netuid = netuid)
 
         if response.is_success:
             context.info("Module deregistered")
@@ -136,7 +136,7 @@ def update(
 
     if ip and not is_ip_valid(ip):
         raise ValueError("Invalid ip address")
-    modules = get_map_modules(client, netuid=netuid, include_balances=False)
+    modules = get_map_modules(client, netuid = netuid, include_balances = False)
     modules_to_list = [value for _, value in modules.items()]
 
     module = next(
@@ -180,12 +180,12 @@ def update(
         f"Updating Module on a subnet with netuid '{netuid}' ..."
     ):
         response = client.update_module(
-            key=resolved_key,
-            name=module["name"],
-            address=module["address"],
-            delegation_fee=module["delegation_fee"],
-            netuid=netuid,
-            metadata=module["metadata"],
+            key = resolved_key,
+            name = module["name"],
+            address = module["address"],
+            delegation_fee = module["delegation_fee"],
+            netuid = netuid,
+            metadata = module["metadata"],
         )
 
     if response.is_success:
@@ -244,13 +244,13 @@ def serve(
         module = importlib.import_module(module_path)
     except ModuleNotFoundError:
         context.error(f"Module `{module_path}` not found")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code = 1)
 
     try:
         class_obj = getattr(module, class_name)
     except AttributeError:
         context.error(f"Class `{class_name}` not found in module `{module}`")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code = 1)
 
     keypair = context.load_key(key, None)
 
@@ -260,7 +260,7 @@ def serve(
     limiter_params = (
         IpLimiterParams()
         if use_ip_limiter
-        else StakeLimiterParams(token_ratio=token_refill_rate)
+        else StakeLimiterParams(token_ratio = token_refill_rate)
     )
 
     if whitelist is None:
@@ -283,17 +283,17 @@ def serve(
     server = ModuleServer(
         class_obj(),
         keypair,
-        whitelist=whitelist_ss58,
-        blacklist=blacklist_ss58,
-        subnets_whitelist=subnets_whitelist,
-        max_request_staleness=request_staleness,
-        limiter=limiter_params,
-        ip_blacklist=ip_blacklist,
-        use_testnet=use_testnet,
+        whitelist = whitelist_ss58,
+        blacklist = blacklist_ss58,
+        subnets_whitelist = subnets_whitelist,
+        max_request_staleness = request_staleness,
+        limiter = limiter_params,
+        ip_blacklist = ip_blacklist,
+        use_testnet = use_testnet,
     )
     app = server.get_fastapi_app()
     host = ip or "127.0.0.1"
-    uvicorn.run(app, host=host, port=port)
+    uvicorn.run(app, host = host, port = port)
 
 
 @module_app.command()
@@ -308,7 +308,7 @@ def info(ctx: Context, name: str, balance: bool = False, netuid: int = 0):
         f"Getting Module {name} on a subnet with netuid {netuid}…"
     ):
         modules = get_map_modules(
-            client, netuid=netuid, include_balances=balance
+            client, netuid = netuid, include_balances = balance
         )
         modules_to_list = [value for _, value in modules.items()]
 
@@ -325,7 +325,7 @@ def info(ctx: Context, name: str, balance: bool = False, netuid: int = 0):
     )
 
 
-@module_app.command(name="list")
+@module_app.command(name = "list")
 def inventory(ctx: Context, balances: bool = False, netuid: int = 0):
     """
     Modules stats on the network.
@@ -338,7 +338,7 @@ def inventory(ctx: Context, balances: bool = False, netuid: int = 0):
     # ):
     modules = cast(
         dict[str, Any],
-        get_map_modules(client, netuid=netuid, include_balances=balances),
+        get_map_modules(client, netuid = netuid, include_balances = balances),
     )
 
     # Convert the values to a human readable format

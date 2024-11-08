@@ -20,7 +20,7 @@ def is_ss58_address(
         True if the address is valid, False otherwise.
     """
 
-    return ss58.is_valid_ss58_address(address, valid_ss58_format=ss58_format)
+    return ss58.is_valid_ss58_address(address, valid_ss58_format = ss58_format)
 
 
 def check_ss58_address(

@@ -79,7 +79,7 @@ class Module:
     def extract_endpoints(self):
         endpoints: dict[str, EndpointDefinition[Any, Any]] = {}
         for name, method in inspect.getmembers(
-            self, predicate=inspect.ismethod
+            self, predicate = inspect.ismethod
         ):
             if hasattr(method, "_endpoint_def"):
                 endpoint_def: EndpointDefinition = method._endpoint_def  # type: ignore

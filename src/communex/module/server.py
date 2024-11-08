@@ -87,7 +87,7 @@ class ModuleServer:
         # order of verifiers is extremely important
         verifiers = [check_lists, input_handler, limiter_verifier]
         route_class = build_route_class(verifiers)
-        self._router = APIRouter(route_class=route_class)
+        self._router = APIRouter(route_class = route_class)
         self.register_endpoints(self._router)
         self._app.include_router(self._router)
 
@@ -141,13 +141,13 @@ def main():
         a_mod,
         keypair,
         subnets_whitelist=[0],
-        blacklist=None,
+        blacklist = None,
     )
     app = server.get_fastapi_app()
 
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)  # type: ignore
+    uvicorn.run(app, host = "127.0.0.1", port = 8000)  # type: ignore
 
 
 if __name__ == "__main__":

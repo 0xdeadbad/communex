@@ -134,9 +134,9 @@ def classic_load_key(
     Loads the keypair with the given name from a disk.
     """
     path = classic_key_path(name)
-    key_dict_json = classic_load(path, password=password)
+    key_dict_json = classic_load(path, password = password)
     key_dict = json.loads(key_dict_json)
-    return from_classic_dict(key_dict, from_mnemonic=from_mnemonic)
+    return from_classic_dict(key_dict, from_mnemonic = from_mnemonic)
 
 
 def try_classic_load_key(
@@ -148,10 +148,10 @@ def try_classic_load_key(
     password = password or password_provider.get_password(key_name)
     try:
         try:
-            keypair = classic_load_key(key_name, password=password)
+            keypair = classic_load_key(key_name, password = password)
         except PasswordNotProvidedError:
             password = password_provider.ask_password(key_name)
-            keypair = classic_load_key(key_name, password=password)
+            keypair = classic_load_key(key_name, password = password)
     except FileNotFoundError as err:
         raise KeyNotFoundError(
             f"Key '{key_name}' is not a valid SS58 address nor a valid key name",
@@ -171,12 +171,12 @@ def try_load_key(name: str, password: str | None = None):
     """
     raise DeprecationWarning("Use try_classic_load_key instead")
     # try:
-    #     key_dict = classic_load(name, password=password)
+    #     key_dict = classic_load(name, password = password)
     # except json.JSONDecodeError:
     #     prompt = f"Please provide the password for the key {name}"
     #     print(prompt)
     #     password = getpass()
-    #     key_dict = classic_load(name, password=password)
+    #     key_dict = classic_load(name, password = password)
     # return key_dict
 
 
@@ -200,7 +200,7 @@ def classic_store_key(
     key_dict = to_classic_dict(keypair, name)
     key_dict_json = json.dumps(key_dict)
     path = classic_key_path(name)
-    classic_put(path, key_dict_json, password=password)
+    classic_put(path, key_dict_json, password = password)
 
 
 def resolve_key_ss58(key: Ss58Address | Keypair | str) -> Ss58Address:
@@ -248,7 +248,7 @@ def resolve_key_ss58_encrypted(
         return key
 
     keypair = try_classic_load_key(
-        key, password=password, password_provider=password_provider
+        key, password = password, password_provider = password_provider
     )
 
     address = keypair.ss58_address
@@ -292,10 +292,10 @@ def local_key_addresses(
 
         password = password_provider.get_password(key_name)
         try:
-            keypair = classic_load_key(key_name, password=password)
+            keypair = classic_load_key(key_name, password = password)
         except PasswordNotProvidedError:
             password = password_provider.ask_password(key_name)
-            keypair = classic_load_key(key_name, password=password)
+            keypair = classic_load_key(key_name, password = password)
 
         addresses_map[key_name] = check_ss58_address(keypair.ss58_address)
 

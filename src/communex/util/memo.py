@@ -112,17 +112,17 @@ def __test():
 
     m["a"] = 2
 
-    print(m.get("a", default="missing"))
+    print(m.get("a", default = "missing"))
     print(m["a"])
 
     time.sleep(0.5)
 
-    print(m.get("a", default="missing"))
+    print(m.get("a", default = "missing"))
     print(m["a"])
 
     time.sleep(1)
 
-    print(m.get("a", default="missing"))
+    print(m.get("a", default = "missing"))
     try:
         print(m["a"])
 

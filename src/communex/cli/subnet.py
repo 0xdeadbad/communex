@@ -17,7 +17,7 @@ from communex.errors import ChainTransactionError
 from communex.misc import IPFS_REGEX, get_map_displayable_subnets
 from communex.types import BurnConfiguration, SubnetParamsWithVoteMode, VoteMode
 
-subnet_app = typer.Typer(no_args_is_help=True)
+subnet_app = typer.Typer(no_args_is_help = True)
 
 
 @subnet_app.command()
@@ -30,6 +30,7 @@ def list(ctx: Context):
 
     with context.progress_status("Getting subnets ..."):
         subnets = get_map_displayable_subnets(client)
+
     subnets_with_netuids = [
         {"netuid": key, **value} for key, value in subnets.items()
     ]
@@ -108,7 +109,6 @@ def info(ctx: Context, netuid: int):
         general_subnet, ["Params", "Values"], context.console
     )
 
-
 @subnet_app.command()
 def register(
     ctx: Context, key: str, name: str, metadata: str = typer.Option(None)
@@ -168,44 +168,44 @@ def update(
     resolved_key = try_classic_load_key(key)
 
     module_burn_config = BurnConfiguration(
-        min_burn=min_burn,
-        max_burn=max_burn,
-        adjustment_alpha=adjustment_alpha,
-        target_registrations_interval=target_registrations_interval,
-        target_registrations_per_interval=target_registrations_per_interval,
-        max_registrations_per_interval=max_registrations_per_interval,
+        min_burn = min_burn,
+        max_burn = max_burn,
+        adjustment_alpha = adjustment_alpha,
+        target_registrations_interval = target_registrations_interval,
+        target_registrations_per_interval = target_registrations_per_interval,
+        max_registrations_per_interval = max_registrations_per_interval,
     )
 
     subnet = SubnetParamsWithVoteMode(
-        name=name,
-        tempo=tempo,
-        min_allowed_weights=min_allowed_weights,
-        max_allowed_weights=max_allowed_weights,
-        max_allowed_uids=max_allowed_uids,
-        max_weight_age=max_weight_age,
-        trust_ratio=trust_ratio,
-        founder_share=founder_share,
-        incentive_ratio=incentive_ratio,
-        founder=resolve_key_ss58(founder),
-        maximum_set_weight_calls_per_epoch=client.query(
+        name = name,
+        tempo = tempo,
+        min_allowed_weights = min_allowed_weights,
+        max_allowed_weights = max_allowed_weights,
+        max_allowed_uids = max_allowed_uids,
+        max_weight_age = max_weight_age,
+        trust_ratio = trust_ratio,
+        founder_share = founder_share,
+        incentive_ratio = incentive_ratio,
+        founder = resolve_key_ss58(founder),
+        maximum_set_weight_calls_per_epoch = client.query(
             "MaximumSetWeightCallsPerEpoch"
         )
         if maximum_set_weight_calls_per_epoch is None  # type: ignore
         else maximum_set_weight_calls_per_epoch,
-        bonds_ma=client.query("BondsMovingAverage")
+        bonds_ma = client.query("BondsMovingAverage")
         if bonds_ma is None  # type: ignore
         else bonds_ma,
-        immunity_period=immunity_period,
-        min_validator_stake=min_validator_stake,
-        max_allowed_validators=max_allowed_validators,
-        module_burn_config=module_burn_config,
-        subnet_metadata=metadata,
-        vote_mode=vote_mode,
+        immunity_period = immunity_period,
+        min_validator_stake = min_validator_stake,
+        max_allowed_validators = max_allowed_validators,
+        module_burn_config = module_burn_config,
+        subnet_metadata = metadata,
+        vote_mode = vote_mode,
     )
 
     with context.progress_status("Updating subnet ..."):
         response = client.update_subnet(
-            key=resolved_key, params=subnet, netuid=netuid
+            key = resolved_key, params = subnet, netuid = netuid
         )
 
     if response.is_success:
@@ -237,7 +237,7 @@ def propose_on_subnet(
     maximum_set_weight_calls_per_epoch: int = typer.Option(None),
     bonds_ma: int = typer.Option(None),
     vote_mode: VoteMode = typer.Option(
-        None, help="0 for Authority, 1 for Vote"
+        None, help = "0 for Authority, 1 for Vote"
     ),
     # BurnConfiguration
     min_burn: int = typer.Option(None),
@@ -265,45 +265,45 @@ def propose_on_subnet(
     resolved_key = try_classic_load_key(key)
 
     module_burn_config = BurnConfiguration(
-        min_burn=min_burn,
-        max_burn=max_burn,
-        adjustment_alpha=adjustment_alpha,
-        target_registrations_interval=target_registrations_interval,
-        target_registrations_per_interval=target_registrations_per_interval,
-        max_registrations_per_interval=max_registrations_per_interval,
+        min_burn = min_burn,
+        max_burn = max_burn,
+        adjustment_alpha = adjustment_alpha,
+        target_registrations_interval = target_registrations_interval,
+        target_registrations_per_interval = target_registrations_per_interval,
+        max_registrations_per_interval = max_registrations_per_interval,
     )
 
     subnet = SubnetParamsWithVoteMode(
-        name=name,
-        tempo=tempo,
-        min_allowed_weights=min_allowed_weights,
-        max_allowed_weights=max_allowed_weights,
-        max_allowed_uids=max_allowed_uids,
-        max_weight_age=max_weight_age,
-        trust_ratio=trust_ratio,
-        founder_share=founder_share,
-        incentive_ratio=incentive_ratio,
-        founder=resolve_key_ss58(founder),
-        maximum_set_weight_calls_per_epoch=client.query(
+        name = name,
+        tempo = tempo,
+        min_allowed_weights = min_allowed_weights,
+        max_allowed_weights = max_allowed_weights,
+        max_allowed_uids = max_allowed_uids,
+        max_weight_age = max_weight_age,
+        trust_ratio = trust_ratio,
+        founder_share = founder_share,
+        incentive_ratio = incentive_ratio,
+        founder = resolve_key_ss58(founder),
+        maximum_set_weight_calls_per_epoch = client.query(
             "MaximumSetWeightCallsPerEpoch"
         )
         if maximum_set_weight_calls_per_epoch is None  # type: ignore
         else maximum_set_weight_calls_per_epoch,
-        bonds_ma=client.query("BondsMovingAverage")
+        bonds_ma = client.query("BondsMovingAverage")
         if bonds_ma is None  # type: ignore
         else bonds_ma,
-        immunity_period=immunity_period,
-        min_validator_stake=min_validator_stake,
-        max_allowed_validators=max_allowed_validators,
-        module_burn_config=module_burn_config,
-        subnet_metadata=metadata,
-        vote_mode=vote_mode,
+        immunity_period = immunity_period,
+        min_validator_stake = min_validator_stake,
+        max_allowed_validators = max_allowed_validators,
+        module_burn_config = module_burn_config,
+        subnet_metadata = metadata,
+        vote_mode = vote_mode,
     )
 
     resolved_key = context.load_key(key, None)
     with context.progress_status("Adding a proposal..."):
         client.add_subnet_proposal(
-            resolved_key, params=dict(subnet), ipfs=cid, netuid=netuid
+            resolved_key, params = dict(subnet), ipfs = cid, netuid = netuid
         )
 
     context.info("Proposal added.")
@@ -359,7 +359,7 @@ def add_custom_proposal(
     cid = ipfs_prefix + cid
 
     with context.progress_status("Adding a proposal..."):
-        client.add_custom_subnet_proposal(resolved_key, cid, netuid=netuid)
+        client.add_custom_subnet_proposal(resolved_key, cid, netuid = netuid)
 
 
 @subnet_app.command()

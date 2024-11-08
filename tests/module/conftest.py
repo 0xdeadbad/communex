@@ -37,7 +37,7 @@ class ThreadServer(uvicorn.Server):
 
     @contextmanager
     def run_in_thread(self):
-        thread = Thread(target=self.run)
+        thread = Thread(target = self.run)
         thread.start()
         try:
             while not self.started:
@@ -48,36 +48,36 @@ class ThreadServer(uvicorn.Server):
             thread.join()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def server_keypair() -> Keypair:
     keypair = Keypair.create_from_mnemonic(TEST_FAKE_MNEM_DO_NOT_USE_THIS)
     return keypair
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def some_module_server(server_keypair: Keypair):
     a_module = SomeModule()
-    server = ModuleServer(a_module, server_keypair, subnets_whitelist=None)
+    server = ModuleServer(a_module, server_keypair, subnets_whitelist = None)
     return server
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def serve(some_module_server: ModuleServer):
     config = uvicorn.Config(
-        host=TEST_HOST,
-        port=TEST_PORT,
-        log_level="info",
-        app=some_module_server.get_fastapi_app(),
+        host = TEST_HOST,
+        port = TEST_PORT,
+        log_level = "info",
+        app = some_module_server.get_fastapi_app(),
     )
 
-    server = ThreadServer(config=config)
+    server = ThreadServer(config = config)
     with server.run_in_thread():
         print("server started")
         yield
     print("server stopped")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def client_keypair() -> Keypair:
     keypair = generate_keypair()
     return keypair
@@ -85,7 +85,7 @@ def client_keypair() -> Keypair:
 
 @pytest.fixture()
 def client(client_keypair: Keypair) -> ModuleClient:
-    client = ModuleClient(host=TEST_HOST, port=TEST_PORT, key=client_keypair)
+    client = ModuleClient(host = TEST_HOST, port = TEST_PORT, key = client_keypair)
 
     return client
 

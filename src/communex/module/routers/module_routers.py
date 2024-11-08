@@ -63,15 +63,15 @@ class StakeLimiterVerifier(AbstractVerifier):
             params = self.params_
         self.limiter = StakeLimiter(
             self.subnets_whitelist,
-            epoch=params.epoch,
-            max_cache_age=params.cache_age,
-            get_refill_rate=params.get_refill_per_epoch,
+            epoch = params.epoch,
+            max_cache_age = params.cache_age,
+            get_refill_rate = params.get_refill_per_epoch,
         )
 
     async def verify(self, request: Request):
         if request.client is None:
             response = JSONResponse(
-                status_code=401,
+                status_code = 401,
                 content={"error": "Address should be present in request"},
             )
             return response
@@ -79,7 +79,7 @@ class StakeLimiterVerifier(AbstractVerifier):
         key = request.headers.get("x-key")
         if not key:
             response = JSONResponse(
-                status_code=401,
+                status_code = 401,
                 content={"error": "Valid X-Key not provided on headers"},
             )
             return response
@@ -88,7 +88,7 @@ class StakeLimiterVerifier(AbstractVerifier):
 
         if not is_allowed:
             response = JSONResponse(
-                status_code=429,
+                status_code = 429,
                 headers={
                     "X-RateLimit-TryAfter": f"{str(await self.limiter.retry_after(key))} seconds"
                 },
@@ -141,14 +141,14 @@ class IpLimiterVerifier(AbstractVerifier):
         :param limiter: KeyLimiter instance OR None
 
         If limiter is None, then a default TokenBucketLimiter is used with the following config:
-        bucket_size=200, refill_rate=15
+        bucket_size = 200, refill_rate = 15
         """
 
         # fallback to default limiter
         if not params:
             params = IpLimiterParams()
         self._limiter = TokenBucketLimiter(
-            bucket_size=params.bucket_size, refill_rate=params.refill_rate
+            bucket_size = params.bucket_size, refill_rate = params.refill_rate
         )
 
     async def verify(self, request: Request):
@@ -161,7 +161,7 @@ class IpLimiterVerifier(AbstractVerifier):
 
         if not is_allowed:
             response = JSONResponse(
-                status_code=429,
+                status_code = 429,
                 headers={
                     "X-RateLimit-Remaining": str(self._limiter.remaining(ip))
                 },
@@ -208,14 +208,14 @@ class InputHandlerVerifier(AbstractVerifier):
             request_time = datetime.fromisoformat(timestamp_to_use)
         except Exception:
             return JSONResponse(
-                status_code=400,
+                status_code = 400,
                 content={"error": "Invalid ISO timestamp given"},
             )
         if (
             datetime.now(timezone.utc) - request_time
         ).total_seconds() > self.request_staleness:
             return JSONResponse(
-                status_code=400, content={"error": "Request is too stale"}
+                status_code = 400, content={"error": "Request is too stale"}
             )
         return None
 
@@ -365,7 +365,7 @@ class InputHandlerVerifier(AbstractVerifier):
 
             def query_keys(subnet: int):
                 try:
-                    node_url = get_node_url(None, use_testnet=use_testnet)
+                    node_url = get_node_url(None, use_testnet = use_testnet)
                     client = make_client(
                         node_url
                     )  # TODO: get client from outer context

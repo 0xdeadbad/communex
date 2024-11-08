@@ -26,7 +26,7 @@ from communex.misc import (
 from communex.types import NetworkParamsProposalParameters
 from communex.util import convert_cid_on_proposal
 
-network_app = typer.Typer(no_args_is_help=True)
+network_app = typer.Typer(no_args_is_help = True)
 
 
 @network_app.command()
@@ -132,28 +132,28 @@ def propose_globally(
     governance_configuration = global_params["governance_config"]
 
     global_params.update(
-        max_name_length=max_name_length,
-        min_name_length=min_name_length,
-        max_allowed_subnets=max_allowed_subnets,
-        max_allowed_modules=max_allowed_modules,
-        max_registrations_per_block=max_registrations_per_block,
-        max_allowed_weights=max_allowed_weights,
-        floor_delegation_fee=floor_delegation_fee,
-        floor_founder_share=floor_founder_share,
-        min_weight_stake=min_weight_stake,
-        curator=resolve_key_ss58(curator),
-        general_subnet_application_cost=general_subnet_application_cost,
-        subnet_immunity_period=subnet_immunity_period,
-        kappa=kappa,
-        rho=rho,
-        proposal_cost=governance_configuration.get(
+        max_name_length = max_name_length,
+        min_name_length = min_name_length,
+        max_allowed_subnets = max_allowed_subnets,
+        max_allowed_modules = max_allowed_modules,
+        max_registrations_per_block = max_registrations_per_block,
+        max_allowed_weights = max_allowed_weights,
+        floor_delegation_fee = floor_delegation_fee,
+        floor_founder_share = floor_founder_share,
+        min_weight_stake = min_weight_stake,
+        curator = resolve_key_ss58(curator),
+        general_subnet_application_cost = general_subnet_application_cost,
+        subnet_immunity_period = subnet_immunity_period,
+        kappa = kappa,
+        rho = rho,
+        proposal_cost = governance_configuration.get(
             "proposal_cost", proposal_cost
         ),
-        proposal_expiration=governance_configuration.get(
+        proposal_expiration = governance_configuration.get(
             "proposal_expiration", proposal_expiration
         ),
-        max_burn=max_burn,
-        min_burn=min_burn,
+        max_burn = max_burn,
+        min_burn = min_burn,
     )
 
     global_params.pop("governance_config")  # type: ignore
@@ -168,7 +168,7 @@ def get_valid_voting_keys(
     client: CommuneClient,
     threshold: int = 25000000000,  # 25 $COMAI
 ) -> dict[str, int]:
-    local_keys = local_key_addresses(password_provider=ctx.password_manager)
+    local_keys = local_key_addresses(password_provider = ctx.password_manager)
     keys_stake = local_keys_to_stakedbalance(client, local_keys)
     keys_stake = {
         key: stake for key, stake in keys_stake.items() if stake >= threshold
@@ -201,7 +201,7 @@ def vote_proposal(
     else:
         keys_stake = {key: None}
 
-    for voting_key in track(keys_stake.keys(), description="Voting..."):
+    for voting_key in track(keys_stake.keys(), description = "Voting..."):
         keypair = context.load_key(voting_key, None)
         try:
             client.vote_on_proposal(keypair, proposal_id, agree)
@@ -267,7 +267,7 @@ def set_root_weights(ctx: Context, key: str):
     # Prompt user to select subnets
     selected_subnets = typer.prompt(
         "Select subnets to set weights for (space-separated list of UIDs)",
-        prompt_suffix="\n" + "\n".join(choices) + "\nEnter UIDs: ",
+        prompt_suffix = "\n" + "\n".join(choices) + "\nEnter UIDs: ",
     )
 
     # Parse the input string into a list of integers
@@ -276,7 +276,7 @@ def set_root_weights(ctx: Context, key: str):
     weights: list[int] = []
     for uid in uids:
         weight = typer.prompt(
-            f"Enter weight for subnet {uid} ({subnet_names[uid]})", type=float
+            f"Enter weight for subnet {uid} ({subnet_names[uid]})", type = float
         )
         weights.append(weight)
 
@@ -286,7 +286,7 @@ def set_root_weights(ctx: Context, key: str):
 
     resolved_key = context.load_key(key, None)
 
-    client.vote(netuid=rootnet_id, uids=uids, weights=weights, key=resolved_key)
+    client.vote(netuid = rootnet_id, uids = uids, weights = weights, key = resolved_key)
 
 
 @network_app.command()

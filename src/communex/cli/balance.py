@@ -18,7 +18,7 @@ from communex.compat.key import (
 from communex.errors import ChainTransactionError
 from communex.faucet.powv2 import solve_for_difficulty_fast
 
-balance_app = typer.Typer(no_args_is_help=True)
+balance_app = typer.Typer(no_args_is_help = True)
 
 
 @balance_app.command()
@@ -62,7 +62,7 @@ def staked_balance(
     with context.progress_status(
         f"Getting staked balance of key {key_address}..."
     ):
-        result = sum(client.get_staketo(key=key_address).values())
+        result = sum(client.get_staketo(key = key_address).values())
 
     context.output(format_balance(result, unit))
 
@@ -83,7 +83,7 @@ def show(
     key_address = context.resolve_key_ss58(key, password)
 
     with context.progress_status(f"Getting value of key {key_address}..."):
-        staked_balance = sum(client.get_staketo(key=key_address).values())
+        staked_balance = sum(client.get_staketo(key = key_address).values())
         free_balance = client.get_balance(key_address)
         balance_sum = free_balance + staked_balance
 
@@ -114,7 +114,7 @@ def get_staked(
     key_address = context.resolve_key_ss58(key, password)
 
     with context.progress_status(f"Getting stake of {key_address}..."):
-        result = sum(client.get_staketo(key=key_address).values())
+        result = sum(client.get_staketo(key = key_address).values())
 
     context.output(format_balance(result, unit))
 
@@ -139,7 +139,7 @@ def transfer(ctx: Context, key: str, amount: float, dest: str):
 
     with context.progress_status(f"Transferring {amount} tokens to {dest}..."):
         response = client.transfer(
-            key=resolved_key, amount=nano_amount, dest=resolved_dest
+            key = resolved_key, amount = nano_amount, dest = resolved_dest
         )
 
     if response.is_success:
@@ -163,7 +163,7 @@ def transfer_all(
 
     keys = local_key_addresses(context.password_manager)
     dest_address = resolve_key_ss58_encrypted(
-        dest, password_provider=context.password_manager
+        dest, password_provider = context.password_manager
     )
 
     # We should probably not transfer into the same account
@@ -189,42 +189,42 @@ def transfer_all(
         for index, (key_name, address) in enumerate(keys):
             try:
                 status.update(
-                    status=f"{index + 1}/{length} Transferring from key {key_name}"
+                    status = f"{index + 1}/{length} Transferring from key {key_name}"
                 )
 
-                keypair = try_classic_load_key(key_name=key_name)
+                keypair = try_classic_load_key(key_name = key_name)
 
                 status.update(
-                    status=f"{index + 1}/{length} Transferring from key {key_name}: Fetching stake..."
+                    status = f"{index + 1}/{length} Transferring from key {key_name}: Fetching stake..."
                 )
-                stake = sum(client.get_staketo(key=address).values())
+                stake = sum(client.get_staketo(key = address).values())
 
                 if stake > 0:
                     status.update(
-                        status=f"{index + 1}/{length} Transferring from key {key_name}: Unstaking {stake}..."
+                        status = f"{index + 1}/{length} Transferring from key {key_name}: Unstaking {stake}..."
                     )
-                    client.unstake(key=keypair, amount=stake, dest=address)
+                    client.unstake(key = keypair, amount = stake, dest = address)
 
                 status.update(
-                    status=f"{index + 1}/{length} Transferring from key {key_name}: Fetching balance..."
+                    status = f"{index + 1}/{length} Transferring from key {key_name}: Fetching balance..."
                 )
-                balance = client.get_balance(addr=address)
+                balance = client.get_balance(addr = address)
 
                 if balance <= min_value:
                     continue
 
                 status.update(
-                    status=f"{index + 1}/{length} Transferring from key {key_name}: Transferring {balance} to {dest_address}..."
+                    status = f"{index + 1}/{length} Transferring from key {key_name}: Transferring {balance} to {dest_address}..."
                 )
 
                 client.transfer(
-                    key=keypair,
-                    amount=balance - min_value,
-                    dest=dest_address,  # type: ignore
+                    key = keypair,
+                    amount = balance - min_value,
+                    dest = dest_address,  # type: ignore
                 )
             except Exception as e:
                 context.error(f"Couldn't transfer from key {key_name}: {e}")
-        status.update(status="Transferred")
+        status.update(status = "Transferred")
 
 
 @balance_app.command()
@@ -246,10 +246,10 @@ def transfer_stake(
         f"Transferring {amount} tokens from {from_key} to {dest}' ..."
     ):
         response = client.transfer_stake(
-            key=keypair,
-            amount=nano_amount,
-            from_module_key=resolved_from,
-            dest_module_address=resolved_dest,
+            key = keypair,
+            amount = nano_amount,
+            from_module_key = resolved_from,
+            dest_module_address = resolved_dest,
         )
 
     if response.is_success:
@@ -281,11 +281,11 @@ def stake(
         "In case you want to change this, call: "
         "`comx key power-delegation <key> --disable`."
     )
-    context.info("INFO: ", style="bold green", end="")  # type: ignore
+    context.info("INFO: ", style = "bold green", end = "")  # type: ignore
     context.info(delegating_message)
     with context.progress_status(f"Staking {amount} tokens to {dest}..."):
         response = client.stake(
-            key=keypair, amount=nano_amount, dest=resolved_dest
+            key = keypair, amount = nano_amount, dest = resolved_dest
         )
 
     if response.is_success:
@@ -308,7 +308,7 @@ def unstake(ctx: Context, key: str, amount: float, dest: str):
 
     with context.progress_status(f"Unstaking {amount} tokens from {dest}'..."):
         response = client.unstake(
-            key=keypair, amount=nano_amount, dest=resolved_dest
+            key = keypair, amount = nano_amount, dest = resolved_dest
         )  # TODO: is it right?
 
     if response.is_success:
@@ -325,11 +325,11 @@ def run_faucet(
     num_executions: int = 1,
 ):
     context = make_custom_context(ctx)
-    use_testnet = ctx.obj.use_testnet
+    use_testnet = context.use_testnet
 
     if not use_testnet:
         context.error("Faucet only enabled on testnet")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code = 1)
 
     resolved_key = context.load_key(key, None)
 
@@ -340,7 +340,7 @@ def run_faucet(
                 client,
                 resolved_key,
                 client.url,
-                num_processes=num_processes,
+                num_processes = num_processes,
             )
         with context.progress_status("Sending solution to blockchain"):
             params = {
@@ -351,10 +351,10 @@ def run_faucet(
             }
             client.compose_call(
                 "faucet",
-                params=params,
-                unsigned=True,
-                module="FaucetModule",
-                key=resolved_key.ss58_address,  # type: ignore
+                params = params,
+                unsigned = True,
+                module = "FaucetModule",
+                key = resolved_key.ss58_address,  # type: ignore
             )
 
 
@@ -370,7 +370,7 @@ def transfer_dao_funds(
 
     if not re.match(IPFS_REGEX, cid_hash):
         context.error(f"CID provided is invalid: {cid_hash}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code = 1)
 
     ipfs_prefix = "ipfs://"
     cid = ipfs_prefix + cid_hash

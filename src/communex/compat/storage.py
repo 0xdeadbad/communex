@@ -32,7 +32,7 @@ COMMUNE_HOME
 
 def _derive_key(password: str):
     # Derive a 256-bit key from the password using Blake2b
-    key = hashlib.blake2b(password.encode(), digest_size=32).digest()
+    key = hashlib.blake2b(password.encode(), digest_size = 32).digest()
     return key
 
 
@@ -151,5 +151,5 @@ def classic_put(
         json.dump(
             {"data": value, "encrypted": encrypted, "timestamp": timestamp},
             file,
-            indent=4,
+            indent = 4,
         )

@@ -25,7 +25,7 @@ from communex.misc import (
     local_keys_to_stakedbalance,
 )
 
-key_app = typer.Typer(no_args_is_help=True)
+key_app = typer.Typer(no_args_is_help = True)
 
 
 class SortBalance(str, Enum):
@@ -68,7 +68,7 @@ def regen(
         key_type = "mnemonic"
     else:
         # If private key (assumes no spaces).
-        keypair = Keypair.create_from_private_key(key_input, ss58_format=42)
+        keypair = Keypair.create_from_private_key(key_input, ss58_format = 42)
         key_type = "private key"
         # Substrate does not return these.
         keypair.mnemonic = ""  # type: ignore
@@ -95,7 +95,7 @@ def show(
     context = make_custom_context(ctx)
 
     keypair = context.load_key(key, password)
-    key_dict = comx_key.to_classic_dict(keypair, path=key)
+    key_dict = comx_key.to_classic_dict(keypair, path = key)
 
     if show_private is not True:
         key_dict["private_key"] = "[SENSITIVE-MODE]"
@@ -138,21 +138,21 @@ def balances(
         sorted_bal = {
             k: v
             for k, v in sorted(
-                key2balance.items(), key=lambda item: item[1], reverse=True
+                key2balance.items(), key = lambda item: item[1], reverse = True
             )
         }
     elif sort_balance == SortBalance.free:
         sorted_bal = {
             k: v
             for k, v in sorted(
-                key2freebalance.items(), key=lambda item: item[1], reverse=True
+                key2freebalance.items(), key = lambda item: item[1], reverse = True
             )
         }
     elif sort_balance == SortBalance.staked:
         sorted_bal = {
             k: v
             for k, v in sorted(
-                key2stake.items(), key=lambda item: item[1], reverse=True
+                key2stake.items(), key = lambda item: item[1], reverse = True
             )
         }
     else:
@@ -180,7 +180,7 @@ def balances(
     print_table_standardize(general_dict, context.console)
 
 
-@key_app.command(name="list")
+@key_app.command(name = "list")
 def inventory(
     ctx: Context,
 ):
@@ -220,7 +220,7 @@ def stakefrom(
     with context.progress_status(
         f"Getting stake-from map for {key_address}..."
     ):
-        result = client.get_stakefrom(key=key_address)
+        result = client.get_stakefrom(key = key_address)
 
     result = {k: format_balance(v, unit) for k, v in result.items()}
 
@@ -248,7 +248,7 @@ def staketo(
         key_address = check_ss58_address(key_address)
 
     with context.progress_status(f"Getting stake-to of {key_address}..."):
-        result = client.get_staketo(key=key_address)
+        result = client.get_staketo(key = key_address)
 
     result = {k: format_balance(v, unit) for k, v in result.items()}
 
@@ -261,7 +261,7 @@ def total_free_balance(
     unit: BalanceUnit = BalanceUnit.joule,
     use_universal_password: Optional[str] = typer.Option(
         False,
-        help="""
+        help = """
         Password to decrypt all keys.
         This will only work if all encrypted keys uses the same password.
         If this is not the case, leave it blank and you will be prompted to give
@@ -283,7 +283,7 @@ def total_free_balance(
 
         balance_sum = sum(key2balance.values())
 
-        context.output(format_balance(balance_sum, unit=unit))
+        context.output(format_balance(balance_sum, unit = unit))
 
 
 @key_app.command()
@@ -292,7 +292,7 @@ def total_staked_balance(
     unit: BalanceUnit = BalanceUnit.joule,
     use_universal_password: bool = typer.Option(
         False,
-        help="""
+        help = """
     Password to decrypt all keys.
     This will only work if all encrypted keys uses the same password.
     If this is not the case, leave it blank and you will be prompted to give
@@ -315,7 +315,7 @@ def total_staked_balance(
 
         stake_sum = sum(key2stake.values())
 
-        context.output(format_balance(stake_sum, unit=unit))
+        context.output(format_balance(stake_sum, unit = unit))
 
 
 @key_app.command()
@@ -324,7 +324,7 @@ def total_balance(
     unit: BalanceUnit = BalanceUnit.joule,
     use_universal_password: bool = typer.Option(
         False,
-        help="""
+        help = """
     Password to decrypt all keys.
     This will only work if all encrypted keys uses the same password.
     If this is not the case, leave it blank and you will be prompted to give
@@ -344,7 +344,7 @@ def total_balance(
         key2tokens = {k: v + key2stake[k] for k, v in key2balance.items()}
         tokens_sum = sum(key2tokens.values())
 
-        context.output(format_balance(tokens_sum, unit=unit))
+        context.output(format_balance(tokens_sum, unit = unit))
 
 
 @key_app.command()

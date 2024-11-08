@@ -9,7 +9,7 @@ from communex.compat.key import local_key_addresses
 from communex.misc import get_map_modules
 from communex.types import ModuleInfoWithOptionalBalance
 
-misc_app = typer.Typer(no_args_is_help=True)
+misc_app = typer.Typer(no_args_is_help = True)
 
 
 def circulating_tokens(c_client: CommuneClient) -> int:
@@ -17,11 +17,11 @@ def circulating_tokens(c_client: CommuneClient) -> int:
     Gets total circulating supply
     """
 
-    with c_client.get_conn(init=True) as substrate:
+    with c_client.get_conn(init = True) as substrate:
         block_hash = substrate.get_block_hash()
 
-    total_balance = c_client.get_total_free_issuance(block_hash=block_hash)
-    total_stake = c_client.get_total_stake(block_hash=block_hash)
+    total_balance = c_client.get_total_free_issuance(block_hash = block_hash)
+    total_stake = c_client.get_total_stake(block_hash = block_hash)
     return total_stake + total_balance
 
 
@@ -73,7 +73,7 @@ def apr(ctx: Context, fee: int = 0):
     context.output(f"Fee {fee} | APR {_apr:.2f}%")
 
 
-@misc_app.command(name="stats")
+@misc_app.command(name = "stats")
 def stats(ctx: Context, balances: bool = False, netuid: int = 0):
     context = make_custom_context(ctx)
     client = context.com_client()
@@ -82,10 +82,10 @@ def stats(ctx: Context, balances: bool = False, netuid: int = 0):
         f"Getting Modules on a subnet with netuid {netuid}..."
     ):
         modules = get_map_modules(
-            client, netuid=netuid, include_balances=balances
+            client, netuid = netuid, include_balances = balances
         )
     modules_to_list = [value for _, value in modules.items()]
-    local_keys = local_key_addresses(password_provider=context.password_manager)
+    local_keys = local_key_addresses(password_provider = context.password_manager)
     local_modules = [
         *filter(
             lambda module: module["key"] in local_keys.values(), modules_to_list
@@ -111,7 +111,7 @@ def stats(ctx: Context, balances: bool = False, netuid: int = 0):
     )
 
 
-@misc_app.command(name="treasury-address")
+@misc_app.command(name = "treasury-address")
 def get_treasury_address(ctx: Context):
     context = make_custom_context(ctx)
     client = context.com_client()

@@ -41,7 +41,7 @@ class IpLimiterMiddleware(BaseHTTPMiddleware):
         :param limiter: KeyLimiter instance OR None
 
         If limiter is None, then a default TokenBucketLimiter is used with the following config:
-        bucket_size=200, refill_rate=15
+        bucket_size = 200, refill_rate = 15
         """
         super().__init__(app)
 
@@ -49,7 +49,7 @@ class IpLimiterMiddleware(BaseHTTPMiddleware):
         if not params:
             params = IpLimiterParams()
         self._limiter = TokenBucketLimiter(
-            bucket_size=params.bucket_size, refill_rate=params.refill_rate
+            bucket_size = params.bucket_size, refill_rate = params.refill_rate
         )
 
     async def dispatch(self, request: Request, call_next: Callback) -> Response:
@@ -62,7 +62,7 @@ class IpLimiterMiddleware(BaseHTTPMiddleware):
 
         if not is_allowed:
             response = JSONResponse(
-                status_code=429,
+                status_code = 429,
                 headers={
                     "X-RateLimit-Remaining": str(self._limiter.remaining(ip))
                 },

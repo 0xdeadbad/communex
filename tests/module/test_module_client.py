@@ -77,7 +77,7 @@ async def test_client_send_request_fail_timeout(
             "prompt_slow",
             server_ss58_address,
             {"msg": "all slow? :p"},
-            timeout=1,
+            timeout = 1,
         )
 
     assert exception_info.match(

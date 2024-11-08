@@ -158,7 +158,7 @@ class _SolverBase(multiprocessing.Process):
             limit: The maximum number of solutions to find.
             key: The keypair used for generating solutions.
         """
-        multiprocessing.Process.__init__(self, daemon=True)
+        multiprocessing.Process.__init__(self, daemon = True)
         self.proc_num = proc_num
         self.num_proc = num_proc
         self.update_interval = update_interval
@@ -279,7 +279,7 @@ def _hash_block_with_key(block_bytes: bytes, key_bytes: bytes) -> bytes:
         The 32-byte hash of the block and key.
     """
 
-    kec = keccak.new(digest_bits=256)
+    kec = keccak.new(digest_bits = 256)
     kec = kec.update(bytearray(block_bytes + key_bytes))
     block_and_key_hash_bytes = kec.digest()
     return block_and_key_hash_bytes
@@ -405,7 +405,7 @@ def _create_seal_hash(block_and_key_hash_bytes: bytes, nonce: int) -> bytes:
     seal_sh256 = hashlib.sha256(
         bytearray(_hex_bytes_to_u8_list(pre_seal))
     ).digest()
-    kec = keccak.new(digest_bits=256)
+    kec = keccak.new(digest_bits = 256)
     seal = kec.update(seal_sh256).digest()
     return seal
 
@@ -547,7 +547,7 @@ def solve_for_difficulty_fast(
     while True:
         # Wait until a solver finds a solution
         try:
-            solution = solution_queue.get(block=True, timeout=0.25)
+            solution = solution_queue.get(block = True, timeout = 0.25)
             if solution is not None:
                 break
         except Empty:
@@ -569,7 +569,7 @@ if __name__ == "__main__":
     from communex._common import get_node_url
     from communex.compat.key import classic_load_key
 
-    node = get_node_url(use_testnet=True)
+    node = get_node_url(use_testnet = True)
     print(node)
     client = CommuneClient(node)
     key = classic_load_key("dev01")
@@ -583,4 +583,4 @@ if __name__ == "__main__":
         "nonce": solution.nonce,
         "work": solution.seal,
     }
-    client.compose_call("faucet", params=params, key=key)
+    client.compose_call("faucet", params = params, key = key)

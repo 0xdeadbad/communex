@@ -18,12 +18,12 @@ class OpenAIModels(str, Enum):
 class OpenAIModule(Module):
     def __init__(self) -> None:
         super().__init__()
-        self.client = OpenAI(api_key=OPENAI_API_KEY)  #  type: ignore
+        self.client = OpenAI(api_key = OPENAI_API_KEY)  #  type: ignore
 
     @endpoint
     def prompt(self, text: str, model: OpenAIModels):
         response = self.client.chat.completions.create(  # type: ignore
-            model=model,
+            model = model,
             response_format={"type": "json_object"},
             messages=[
                 {
@@ -55,4 +55,4 @@ if __name__ == "__main__":
     model_server = ModuleServer(model, key)
     app = model_server.get_fastapi_app()
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host = "127.0.0.1", port = 8000)
