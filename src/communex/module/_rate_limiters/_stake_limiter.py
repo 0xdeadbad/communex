@@ -3,7 +3,7 @@ from math import ceil, floor
 from time import monotonic
 from typing import Callable
 
-from substrateinterface.utils.ss58 import ss58_decode  # type: ignore
+from substrateinterface.utils.ss58 import ss58_decode
 
 from communex._common import get_node_url
 from communex.balance import to_nano
@@ -33,6 +33,7 @@ def calls_per_epoch(stake: int, multiplier: int = 1) -> float:
 
     def mult_2(x: int) -> int:
         return x * 2
+
     if stake < to_nano(10_000):
         return 0
     elif stake < to_nano(500_000):
@@ -42,14 +43,17 @@ def calls_per_epoch(stake: int, multiplier: int = 1) -> float:
 
 
 def build_keys_refill_rate(
-    get_refill_rate: Callable[[int], float] = calls_per_epoch
+    get_refill_rate: Callable[[int], float] = calls_per_epoch,
 ):
     key_to_stake = keys_to_stakedbalance()
-    key_to_ratio = {ss58_decode(key): get_refill_rate(stake) for key, stake in key_to_stake.items()}
+    key_to_ratio = {
+        ss58_decode(key): get_refill_rate(stake)
+        for key, stake in key_to_stake.items()
+    }
     return key_to_ratio
 
 
-class StakeLimiter():
+class StakeLimiter:
     def __init__(
         self,
         subnets_whitelist: list[int] | None,
@@ -154,9 +158,13 @@ class StakeLimiter():
         if new_tokens <= 0:
             return
 
-        tokens = min(tokens + new_tokens, max(self.key_ratio.values(), default=0))  # sink overflow
+        tokens = min(
+            tokens + new_tokens, max(self.key_ratio.values(), default=0)
+        )  # sink overflow
 
-        self._set_tokens(key, tokens)  # has race conditions in multi-threaded environments
+        self._set_tokens(
+            key, tokens
+        )  # has race conditions in multi-threaded environments
 
     async def _fill(self, key: str) -> None:
         # starts with at least 1 token

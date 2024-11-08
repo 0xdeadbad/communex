@@ -12,12 +12,11 @@ from communex.cli._common import (
     make_custom_context,
     print_table_from_plain_dict,
     print_table_standardize,
-    transform_subnet_params
-    )
+)
 from communex.compat.key import resolve_key_ss58, try_classic_load_key
 from communex.errors import ChainTransactionError
-from communex.misc import IPFS_REGEX, get_map_subnets_params
-from communex.types import SubnetParamsWithVoteMode, VoteMode, BurnConfiguration
+from communex.misc import IPFS_REGEX, get_map_displayable_subnets
+from communex.types import BurnConfiguration, SubnetParamsWithVoteMode, VoteMode
 
 subnet_app = typer.Typer(no_args_is_help=True)
 
@@ -31,17 +30,12 @@ def list(ctx: Context):
     client = context.com_client()
 
     with context.progress_status("Getting subnets ..."):
-        subnets = get_map_subnets_params(client)
-
-    keys, values = subnets.keys(), subnets.values()
-    display_values = map(transform_subnet_params, values)
+        subnets = get_map_displayable_subnets(client)
     subnets_with_netuids = [
-        {"netuid": key, **value} for key, value in zip(keys, display_values)
+        {"netuid": key, **value} for key, value in subnets.items()
     ]
-
     for dict in subnets_with_netuids:  # type: ignore
-        print_table_from_plain_dict(
-            dict, ["Params", "Values"], context.console)  # type: ignore
+        print_table_from_plain_dict(dict, ["Params", "Values"], context.console)  # type: ignore
 
 
 @subnet_app.command()
@@ -55,7 +49,8 @@ def distribution(ctx: Context):
         subnet_names = client.query_map_subnet_names()
         total_emission = sum(subnets_emission.values())
         subnet_emission_percentages = {
-            key: value / total_emission * 100 for key, value in subnets_emission.items()
+            key: value / total_emission * 100
+            for key, value in subnets_emission.items()
         }
 
     # Prepare the data for the table
@@ -63,7 +58,7 @@ def distribution(ctx: Context):
         "Subnet": [],
         "Name": [],
         "Consensus": [],
-        "Emission %": []
+        "Emission %": [],
     }
 
     for subnet, emission_percentage in subnet_emission_percentages.items():
@@ -102,8 +97,7 @@ def info(ctx: Context, netuid: int):
     client = context.com_client()
 
     with context.progress_status(f"Getting subnet with netuid '{netuid}'..."):
-
-        subnets = get_map_subnets_params(client)
+        subnets = get_map_displayable_subnets(client)
         subnet = subnets.get(netuid, None)
 
     if subnet is None:
@@ -111,22 +105,20 @@ def info(ctx: Context, netuid: int):
 
     general_subnet: dict[str, Any] = cast(dict[str, Any], subnet)
     print_table_from_plain_dict(
-        general_subnet, ["Params", "Values"], context.console)
+        general_subnet, ["Params", "Values"], context.console
+    )
 
 
 @subnet_app.command()
 def register(
-    ctx: Context,
-    key: str,
-    name: str,
-    metadata: str = typer.Option(None)
+    ctx: Context, key: str, name: str, metadata: str = typer.Option(None)
 ):
     """
     Registers a new subnet.
     """
     context = make_custom_context(ctx)
-    resolved_key = try_classic_load_key(key)
     client = context.com_client()
+    resolved_key = context.load_key(key, None)
 
     with context.progress_status("Registering subnet ..."):
         response = client.register_subnet(resolved_key, name, metadata)
@@ -155,12 +147,9 @@ def update(
     tempo: int = typer.Option(None),
     trust_ratio: int = typer.Option(None),
     maximum_set_weight_calls_per_epoch: int = typer.Option(None),
-
     # GovernanceConfiguration
     vote_mode: VoteMode = typer.Option(None),
-
     bonds_ma: int = typer.Option(None),
-
     # BurnConfiguration
     min_burn: int = typer.Option(None),
     max_burn: int = typer.Option(None),
@@ -168,7 +157,6 @@ def update(
     target_registrations_interval: int = typer.Option(None),
     target_registrations_per_interval: int = typer.Option(None),
     max_registrations_per_interval: int = typer.Option(None),
-
     min_validator_stake: int = typer.Option(None),
     max_allowed_validators: int = typer.Option(None),
 ):
@@ -245,9 +233,9 @@ def propose_on_subnet(
     trust_ratio: int = typer.Option(None),
     maximum_set_weight_calls_per_epoch: int = typer.Option(None),
     bonds_ma: int = typer.Option(None),
-
-    vote_mode: VoteMode = typer.Option(None, help="0 for Authority, 1 for Vote"),
-
+    vote_mode: VoteMode = typer.Option(
+        None, help="0 for Authority, 1 for Vote"
+    ),
     # BurnConfiguration
     min_burn: int = typer.Option(None),
     max_burn: int = typer.Option(None),
@@ -255,7 +243,6 @@ def propose_on_subnet(
     target_registrations_interval: int = typer.Option(None),
     target_registrations_per_interval: int = typer.Option(None),
     max_registrations_per_interval: int = typer.Option(None),
-
     min_validator_stake: int = typer.Option(None),
     max_allowed_validators: int = typer.Option(None),
 ):
@@ -307,7 +294,7 @@ def propose_on_subnet(
         vote_mode = vote_mode,
     )
 
-    resolved_key = try_classic_load_key(key)
+    resolved_key = context.load_key(key, None)
     with context.progress_status("Adding a proposal..."):
         client.add_subnet_proposal(
             resolved_key,
@@ -334,7 +321,7 @@ def submit_general_subnet_application(
 
     client = context.com_client()
 
-    resolved_key = try_classic_load_key(key)
+    resolved_key = context.load_key(key, None)
     resolved_application_key = resolve_key_ss58(application_key)
 
     # append the ipfs hash
@@ -355,17 +342,16 @@ def add_custom_proposal(
     """
     Adds a custom proposal to a specific subnet.
     """
-
     context = make_custom_context(ctx)
+
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
         exit(1)
 
     client = context.com_client()
 
-    resolved_key = try_classic_load_key(key)
+    resolved_key = context.load_key(key, None)
 
-    # append the ipfs hash
     ipfs_prefix = "ipfs://"
     cid = ipfs_prefix + cid
 
@@ -373,9 +359,7 @@ def add_custom_proposal(
         client.add_custom_subnet_proposal(resolved_key, cid, netuid=netuid)
 
 @subnet_app.command()
-def list_curator_applications(
-    ctx: Context
-):
+def list_curator_applications(ctx: Context):
     """
     Lists all curator applications.
     """
