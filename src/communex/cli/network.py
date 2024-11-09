@@ -283,7 +283,7 @@ def set_root_weights(ctx: Context, key: str):
 
     # Prompt user to select subnets
     selected_subnets = context.prompt(
-        f"Select subnets to set weights for (space-separated list of UIDs)\n" +
+        "Select subnets to set weights for (space-separated list of UIDs)\n" +
         "\n".join(choices) + "\n" +
         "Select",
     )
@@ -307,7 +307,7 @@ def set_root_weights(ctx: Context, key: str):
                 raise typer.Abort()
 
             except Exception as _:
-                context.error(f'Please input a valid number')
+                context.error('Please input a valid number')
                 continue
 
     context.info("Selected subnets and weights:")
