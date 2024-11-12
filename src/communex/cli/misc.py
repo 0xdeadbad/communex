@@ -3,7 +3,7 @@ from typer import Context
 
 from communex._common import BalanceUnit, format_balance
 from communex.balance import from_nano
-from communex.cli._common import make_custom_context, print_module_info
+from communex.cli._common import print_module_info, CustomCtx
 from communex.client import CommuneClient
 from communex.compat.key import local_key_addresses
 from communex.misc import get_map_modules
@@ -30,7 +30,7 @@ def circulating_supply(ctx: Context, unit: BalanceUnit = BalanceUnit.joule):
     """
     Gets the value of all keys on the network, stake + balances
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status(
@@ -47,7 +47,7 @@ def circulating_supply(ctx: Context, unit: BalanceUnit = BalanceUnit.joule):
             unit = unit,
         )
     else:
-        context.output_data(formatted_output)
+        context.output_raw(formatted_output)
 
 
 @misc_app.command()
@@ -56,7 +56,7 @@ def apr(ctx: Context, fee: int = 0):
     Gets the current staking APR on validators.
     The miner reinvest rate & fee are specified in percentages.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     # adjusting the fee to the correct format
@@ -85,12 +85,12 @@ def apr(ctx: Context, fee: int = 0):
             apr = _apr
         )
     else:
-        context.output_data(f"Fee {fee} | APR {_apr:.2f}%")
+        context.output_raw(f"Fee {fee} | APR {_apr:.2f}%")
 
 
 @misc_app.command(name = "stats")
 def stats(ctx: Context, balances: bool = False, netuid: int = 0):
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status(
@@ -135,7 +135,7 @@ def stats(ctx: Context, balances: bool = False, netuid: int = 0):
 
 @misc_app.command(name = "treasury-address")
 def get_treasury_address(ctx: Context):
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting DAO treasury address..."):
@@ -146,7 +146,7 @@ def get_treasury_address(ctx: Context):
             address = dao_address
         )
     else:
-        context.output_data(dao_address)
+        context.output_raw(dao_address)
 
 
 @misc_app.command()
@@ -154,7 +154,7 @@ def delegate_rootnet_control(ctx: Context, key: str, target: str):
     """
     Delegates control of the rootnet to a key
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
     resolved_key = context.load_key(key, None)
     ss58_target = context.resolve_key_ss58(target, None)

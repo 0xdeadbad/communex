@@ -7,7 +7,7 @@ import rich
 import rich.prompt
 import typer
 from rich import box
-from rich.console import Console, PagerContext
+from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 from substrateinterface import Keypair
@@ -149,7 +149,7 @@ class CustomCtx:
     ) -> None:
         self.console.print(message, *args, **kwargs)  # type: ignore
 
-    def output_data(
+    def output_raw(
         self,
         message: str,
         *args: tuple[Any, ...],
@@ -157,13 +157,26 @@ class CustomCtx:
     ) -> None:
         self.console_err.print(message, *args, **kwargs) # type: ignore
 
-    def output_json(
+    def output_json_raw(
         self,
         *args: tuple[Any, ...],
         **kwargs: Any,
     ) -> None:
         self.console_err.print(
             json.dumps({ **kwargs }),
+            *args,
+            crop = False,
+            overflow = 'ignore',
+            soft_wrap = False
+        )
+
+    def output_json(
+        self,
+        *args: tuple[Any, ...],
+        **kwargs: Any,
+    ) -> None:
+        self.console_err.print(
+            json.dumps({ 'type': 'data', 'data': { **kwargs } }),
             *args,
             crop = False,
             overflow = 'ignore',
@@ -183,7 +196,7 @@ class CustomCtx:
                 'message': message
             })
 
-        self.console_err.print(message, *args, **kwargs)  # type: ignore
+        self.output_raw(message, *args, **kwargs)  # type: ignore
 
     def error(
         self,
@@ -200,7 +213,7 @@ class CustomCtx:
         else:
             message = f"ERROR: {message}"
 
-        self.console_err.print(message, *args, style = "bold red", **kwargs)  # type: ignore
+        self.output_raw(message, *args, style = "bold red", **kwargs)  # type: ignore
 
     def progress_status(self, message: str = ''):
         if self.use_json_output:
@@ -214,24 +227,21 @@ class CustomCtx:
                 spinner = 'dots12'
             )
 
-    def pagination(self) -> PagerContext:
-        return self.console_err.pager()
-
     def confirm(self, message: str) -> bool:
         if self.use_yes_to_all:
             if self.use_json_output:
-                self.output_json(
+                self.output_json_raw(
                     type = 'confirm',
                     prompt = message,
                     accepted = True
                 )
                 return True
             else:
-                self.output_data(f"{message} (--yes)")
+                self.output_raw(f"{message} (--yes)")
                 return True
 
         if self.use_json_output:
-            self.output_json(
+            self.output_json_raw(
                 prompt = message,
                 type = 'confirm',
                 accepted = False
@@ -243,7 +253,7 @@ class CustomCtx:
 
     def prompt_secret(self, message: str) -> str:
         if self.use_json_output:
-            self.output_json(
+            self.output_json_raw(
                 prompt = message,
                 type = 'secret',
             )
@@ -269,7 +279,7 @@ class CustomCtx:
         **kwargs: dict[Any, Any],
     ) -> str:
         if self.use_json_output:
-            self.output_json(
+            self.output_json_raw(
                 prompt = message,
                 type = 'prompt',
                 choices = choices
@@ -321,13 +331,12 @@ class CustomCtx:
             self.error(f"Incorrect password for key '{key}'")
             raise typer.Exit(code = 1)
 
-
-def make_custom_context(ctx: typer.Context) -> CustomCtx:
-    return CustomCtx(
-        ctx = cast(ExtendedContext, ctx),  # TODO: better check
-        settings = ComxSettings(),
-    )
-
+    @staticmethod
+    def get(ctx: typer.Context):
+        return CustomCtx(
+            ctx = cast(ExtendedContext, ctx),
+            settings = ComxSettings()
+        )
 
 # Formatting
 def print_table_from_plain_dict(

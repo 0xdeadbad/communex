@@ -8,7 +8,6 @@ from typer import Context
 import communex.balance as c_balance
 from communex.cli._common import (
     CustomCtx,
-    make_custom_context,
     print_table_from_plain_dict,
     tranform_network_params,
 )
@@ -34,7 +33,7 @@ def last_block(ctx: Context, hash: bool = False):
     """
     Gets the last block
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     info = "number" if not hash else "hash"
@@ -49,7 +48,7 @@ def last_block(ctx: Context, hash: bool = False):
             block_info = block_info
         )
     else:
-        context.output_data(str(block_info))
+        context.output_raw(str(block_info))
 
 
 @network_app.command()
@@ -57,7 +56,7 @@ def params(ctx: Context):
     """
     Gets global params
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting global network params ..."):
@@ -79,7 +78,7 @@ def list_proposals(ctx: Context, query_cid: bool = typer.Option(True)):
     """
     Gets proposals
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting proposals..."):
@@ -135,7 +134,7 @@ def propose_globally(
     """
     Adds a global proposal to the network.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
     resolved_key = try_classic_load_key(key)
 
@@ -203,7 +202,7 @@ def vote_proposal(
     """
     Casts a vote on a specified proposal. Without specifying a key, all keys on disk will be used.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     if key is None:
@@ -233,7 +232,7 @@ def unvote_proposal(ctx: Context, key: str, proposal_id: int):
     """
     Retracts a previously cast vote on a specified proposal.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     resolved_key = context.load_key(key, None)
@@ -246,7 +245,7 @@ def add_custom_proposal(ctx: Context, key: str, cid: str):
     """
     Adds a custom proposal.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
         exit(1)
@@ -270,7 +269,7 @@ def set_root_weights(ctx: Context, key: str):
     Command for rootnet validators to set the weights on subnets.
     """
 
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
     rootnet_id = 0
 
@@ -328,7 +327,7 @@ def registration_burn(
     Appraises the cost of registering a module on the Commune network.
     """
 
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     burn = client.get_burn(netuid)

@@ -8,7 +8,7 @@ import typer
 from typer import Context
 
 from communex.cli._common import (
-    make_custom_context,
+    CustomCtx,
     print_table_from_plain_dict,
     print_table_standardize,
 )
@@ -25,7 +25,7 @@ def list_subnets(ctx: Context):
     """
     Gets subnets.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting subnets ..."):
@@ -34,7 +34,6 @@ def list_subnets(ctx: Context):
     subnets_with_netuids = [
         {"netuid": key, **value} for key, value in subnets.items()
     ]
-
 
     if context.use_json_output:
         context.output_json(subnets = subnets_with_netuids)
@@ -45,7 +44,7 @@ def list_subnets(ctx: Context):
 
 @subnet_app.command()
 def distribution(ctx: Context):
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting emission distribution..."):
@@ -85,7 +84,7 @@ def legit_whitelist(ctx: Context):
     Gets the legitimate whitelist of modules for the general subnet 0
     """
 
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting legitimate whitelist ..."):
@@ -104,7 +103,7 @@ def info(ctx: Context, netuid: int):
     """
     Gets subnet info.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status(f"Getting subnet with netuid '{netuid}'..."):
@@ -130,7 +129,7 @@ def register(
     """
     Registers a new subnet.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
     resolved_key = context.load_key(key, None)
 
@@ -177,7 +176,7 @@ def update(
     """
     Updates a subnet.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
     resolved_key = try_classic_load_key(key)
 
@@ -266,7 +265,7 @@ def propose_on_subnet(
     """
     Adds a proposal to a specific subnet.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
         exit(1)
@@ -274,7 +273,7 @@ def propose_on_subnet(
         ipfs_prefix = "ipfs://"
         cid = ipfs_prefix + cid
 
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
     resolved_key = try_classic_load_key(key)
 
@@ -331,7 +330,7 @@ def submit_general_subnet_application(
     Submits a legitimate whitelist application to the general subnet, netuid 0.
     """
 
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
         exit(1)
@@ -359,7 +358,7 @@ def add_custom_proposal(
     """
     Adds a custom proposal to a specific subnet.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
 
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
@@ -381,7 +380,7 @@ def list_curator_applications(ctx: Context):
     """
     Lists all curator applications.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Querying applications..."):

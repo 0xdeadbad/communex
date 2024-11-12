@@ -8,7 +8,7 @@ from typer import Context
 import communex.balance as c_balance
 from communex._common import intersection_update
 from communex.cli._common import (
-    make_custom_context,
+    CustomCtx,
     print_module_info,
     print_table_from_plain_dict,
 )
@@ -54,7 +54,7 @@ def register(
     """
     Registers a module on a subnet.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
     if metadata and len(metadata) > 59:
         raise ValueError("Metadata must be less than 60 characters")
@@ -95,7 +95,7 @@ def deregister(ctx: Context, key: str, netuid: int):
     """
     Deregisters a module from a subnet.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     resolved_key = context.load_key(key, None)
@@ -126,7 +126,7 @@ def update(
     Update module with custom parameters.
     """
 
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     if metadata and len(metadata) > 59:
@@ -221,7 +221,7 @@ def serve(
     Serves a module on `127.0.0.1` on port `port`. `class_path` should specify
     the dotted path to the module class e.g. `module.submodule.ClassName`.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     use_testnet = context.get_use_testnet()
     path_parts = class_path.split(".")
     match path_parts:
@@ -301,7 +301,7 @@ def info(ctx: Context, name: str, balance: bool = False, netuid: int = 0):
     """
     Gets module info
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     with context.progress_status(
@@ -334,7 +334,7 @@ def inventory(ctx: Context, balances: bool = False, netuid: int = 0):
     """
     Modules stats on the network.
     """
-    context = make_custom_context(ctx)
+    context = CustomCtx.get(ctx)
     client = context.com_client()
 
     # with context.progress_status(

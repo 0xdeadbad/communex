@@ -25,10 +25,6 @@ check_format:
 format:
 	ruff format ./src
 
-# fmt:
-# 	isort ./src
-# 	autopep8 --in-place --recursive ./src
-
 test_all: test test_slow
 
 test:
