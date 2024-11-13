@@ -33,7 +33,6 @@ class SortBalance(str, Enum):
     free = "free"
     staked = "staked"
 
-
 @key_app.command()
 def create(ctx: Context, name: str, password: str = typer.Option(None)):
     """

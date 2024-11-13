@@ -8,6 +8,7 @@ readme = "README.md"
 
 [tool.poetry.scripts]
 comx = "communex.cli:app"
+cx = "communex.new_cli:entrypoint"
 
 # configure autopep to not format type ignores !!!
 [tool.autopep8]
