@@ -3,7 +3,7 @@ from typer import Context
 
 from communex._common import BalanceUnit, format_balance
 from communex.balance import from_nano
-from communex.cli._common import print_module_info, CustomCtx
+from communex.cli._common import CustomCtx
 from communex.client import CommuneClient
 from communex.compat.key import local_key_addresses
 from communex.misc import get_map_modules
@@ -124,12 +124,12 @@ def stats(ctx: Context, balances: bool = False, netuid: int = 0):
             local_validators = local_validators
         )
     else:
-        print_module_info(
-            client, local_inactive, context.console_err, netuid, "inactive"
+        context.output_module_information(
+            client, local_inactive, netuid, "inactive"
         )
-        print_module_info(client, local_miners, context.console, netuid, "miners")
-        print_module_info(
-            client, local_validators, context.console_err, netuid, "validators"
+        context.output_module_information(client, local_miners, netuid, "miners")
+        context.output_module_information(
+            client, local_validators, netuid, "validators"
         )
 
 

@@ -6,10 +6,7 @@ from typer import Context
 
 from communex._common import IPFS_REGEX, BalanceUnit, format_balance
 from communex.balance import to_nano
-from communex.cli._common import (
-    CustomCtx,
-    print_table_from_plain_dict,
-)
+from communex.cli._common import CustomCtx
 from communex.compat.key import (
     local_key_addresses,
     resolve_key_ss58_encrypted,
@@ -111,14 +108,13 @@ def show(
             total_balance = balance_sum
         )
     else:
-        print_table_from_plain_dict(
+        context.output_table_from_dict(
             {
                 "Free": format_balance(free_balance, unit),
                 "Staked": format_balance(staked_balance, unit),
                 "Total": format_balance(balance_sum, unit),
             },
-            ["Result", "Amount"],
-            context.console_err,
+            ["Result", "Amount"]
         )
 
 

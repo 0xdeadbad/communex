@@ -8,7 +8,6 @@ from typer import Context
 import communex.balance as c_balance
 from communex.cli._common import (
     CustomCtx,
-    print_table_from_plain_dict,
     tranform_network_params,
 )
 from communex.client import CommuneClient
@@ -68,9 +67,7 @@ def params(ctx: Context):
             **printable_params
         )
     else:
-        print_table_from_plain_dict(
-            printable_params, ["Global params", "Value"], context.console_err
-        )
+        context.output_table_from_dict(printable_params, ["Global params", "Value"])
 
 
 @network_app.command()
@@ -100,11 +97,7 @@ def list_proposals(ctx: Context, query_cid: bool = typer.Option(True)):
             if isinstance(status, dict):
                 batch_proposal["status"] = [*status.keys()][0]
 
-            print_table_from_plain_dict(
-                batch_proposal,
-                [f"Proposal id: {proposal_id}", "Params"],
-                context.console_err,
-            )
+            context.output_table_from_dict(batch_proposal, [f"Proposal id: {proposal_id}", "Params"])
 
 
 @network_app.command()

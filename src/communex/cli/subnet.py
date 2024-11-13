@@ -7,11 +7,7 @@ import aiohttp
 import typer
 from typer import Context
 
-from communex.cli._common import (
-    CustomCtx,
-    print_table_from_plain_dict,
-    print_table_standardize,
-)
+from communex.cli._common import CustomCtx
 from communex.compat.key import resolve_key_ss58, try_classic_load_key
 from communex.errors import ChainTransactionError
 from communex.misc import IPFS_REGEX, get_map_displayable_subnets
@@ -39,7 +35,7 @@ def list_subnets(ctx: Context):
         context.output_json(subnets = subnets_with_netuids)
     else:
         for dic in subnets_with_netuids:
-            print_table_from_plain_dict(dic, ["Params", "Values"], context.console_err)
+            context.output_table_from_dict(dic, ["Params", "Values"])
 
 
 @subnet_app.command()
@@ -75,7 +71,7 @@ def distribution(ctx: Context):
     if context.use_json_output:
         context.output_json(**table_data)
     else:
-        print_table_standardize(table_data, context.console)
+        context.output_table_standardized(table_data)
 
 
 @subnet_app.command()
@@ -93,9 +89,7 @@ def legit_whitelist(ctx: Context):
     if context.use_json_output:
         context.output_json(**whitelist)
     else:
-        print_table_from_plain_dict(
-            whitelist, ["Module", "Recommended weight"], context.console_err
-        )
+        context.output_table_from_dict(whitelist, ["Module", "Recommended weight"])
 
 
 @subnet_app.command()
@@ -118,9 +112,7 @@ def info(ctx: Context, netuid: int):
     if context.use_json_output:
         context.output_json(**general_subnet)
     else:
-        print_table_from_plain_dict(
-            general_subnet, ["Params", "Values"], context.console_err
-        )
+        context.output_table_from_dict(general_subnet, ["Params", "Values"])
 
 @subnet_app.command()
 def register(
@@ -475,6 +467,4 @@ def list_curator_applications(ctx: Context):
 
             value["data"] = value_data  # type: ignore
 
-            print_table_from_plain_dict(
-                value, ["Params", "Values"], context.console_err
-            )
+            context.output_table_from_dict(value, ["Params", "Values"])

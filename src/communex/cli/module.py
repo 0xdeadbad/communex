@@ -7,11 +7,7 @@ from typer import Context
 
 import communex.balance as c_balance
 from communex._common import intersection_update
-from communex.cli._common import (
-    CustomCtx,
-    print_module_info,
-    print_table_from_plain_dict,
-)
+from communex.cli._common import CustomCtx
 from communex.errors import ChainTransactionError
 from communex.key import check_ss58_address
 from communex.misc import get_map_modules
@@ -324,9 +320,7 @@ def info(ctx: Context, name: str, balance: bool = False, netuid: int = 0):
     if context.use_json_output:
         context.output_json(**general_module)
     else:
-        print_table_from_plain_dict(
-            general_module, ["Params", "Values"], context.console_err
-        )
+        context.output_table_from_dict(general_module, ["Params", "Values"])
 
 
 @module_app.command(name = "list")
@@ -367,6 +361,6 @@ def inventory(ctx: Context, balances: bool = False, netuid: int = 0):
             inactive = inactive
         )
     else:
-        print_module_info(client, miners, context.console, netuid, "miners")
-        print_module_info(client, validators, context.console, netuid, "validators")
-        print_module_info(client, inactive, context.console, netuid, "inactive")
+        context.output_module_information(client, miners, netuid, "miners")
+        context.output_module_information(client, validators, netuid, "validators")
+        context.output_module_information(client, inactive, netuid, "inactive")

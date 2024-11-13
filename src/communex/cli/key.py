@@ -9,11 +9,8 @@ from typer import Context
 
 import communex.compat.key as comx_key
 from communex._common import BalanceUnit, format_balance
-from communex.cli._common import (
-    CustomCtx,
-    print_table_from_plain_dict,
-    print_table_standardize,
-)
+from communex.cli._common import CustomCtx
+
 from communex.compat.key import (
     classic_store_key,
     local_key_addresses,
@@ -107,7 +104,7 @@ def show(
     if context.use_json_output:
         context.output_json(**key_dict)
     else:
-        print_table_from_plain_dict(key_dict, ["Key", "Value"], context.console_err)
+        context.output_table_from_dict(key_dict, ["Key", "Value"])
 
 
 @key_app.command()
@@ -185,7 +182,7 @@ def balances(
     if context.use_json_output:
         context.output_json(**general_dict)
     else:
-        print_table_standardize(general_dict, context.console)
+        context.output_table_standardized(general_dict)
 
 
 @key_app.command(name = "list")
@@ -207,9 +204,7 @@ def inventory(
             **general_key_to_address
         )
     else:
-        print_table_from_plain_dict(
-            general_key_to_address, ["Key", "Address"], context.console_err
-        )
+        context.output_table_from_dict(general_key_to_address, ["Key", "Address"])
 
 
 @key_app.command()
@@ -243,7 +238,7 @@ def stakefrom(
             **result
         )
     else:
-        print_table_from_plain_dict(result, ["Key", "Stake"], context.console_err)
+        context.output_table_from_dict(result, ["Key", "Stake"])
 
 
 @key_app.command()
@@ -276,7 +271,7 @@ def staketo(
             **result
         )
     else:
-        print_table_from_plain_dict(result, ["Key", "Stake"], context.console_err)
+        context.output_table_from_dict(result, ["Key", "Stake"])
 
 
 @key_app.command()
