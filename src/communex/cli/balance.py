@@ -6,7 +6,7 @@ from typer import Context
 
 from communex._common import IPFS_REGEX, BalanceUnit, format_balance
 from communex.balance import to_nano
-from communex.cli._common import CustomCtx
+from communex.cli._common import CLIContext
 from communex.compat.key import (
     local_key_addresses,
     resolve_key_ss58_encrypted,
@@ -28,7 +28,7 @@ def free_balance(
     """
     Gets free balance of a key.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     key_address = context.resolve_key_ss58(key, password)
@@ -60,7 +60,7 @@ def staked_balance(
     """
     Gets the balance staked on the key itself.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     key_address = context.resolve_key_ss58(key, password)
@@ -91,7 +91,7 @@ def show(
     """
     Gets entire balance of a key (free balance + staked balance).
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     key_address = context.resolve_key_ss58(key, password)
@@ -128,7 +128,7 @@ def get_staked(
     """
     Gets total stake of a key it delegated across other keys.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     key_address = context.resolve_key_ss58(key, password)
@@ -153,7 +153,7 @@ def transfer(ctx: Context, key: str, amount: float, dest: str):
     """
     Transfer amount to destination using key
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     nano_amount = to_nano(amount)
@@ -187,7 +187,7 @@ def transfer_all(
     Transfer all balance to a specific address
     """
 
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     keys = local_key_addresses(context.password_manager)
@@ -263,7 +263,7 @@ def transfer_stake(
     """
     Transfers stake of key from point A to point B
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     nano_amount = to_nano(amount)
@@ -297,7 +297,7 @@ def stake(
     """
     Stake amount to destination using key
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     nano_amount = to_nano(amount)
@@ -328,7 +328,7 @@ def unstake(ctx: Context, key: str, amount: float, dest: str):
     """
     Unstake amount from destination using key
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     nano_amount = to_nano(amount)
@@ -353,7 +353,7 @@ def run_faucet(
     num_processes: Optional[int] = None,
     num_executions: int = 1,
 ):
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     use_testnet = context.use_testnet
 
     if not use_testnet:
@@ -395,7 +395,7 @@ def transfer_dao_funds(
     cid_hash: str,
     dest: str,
 ):
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
 
     if not re.match(IPFS_REGEX, cid_hash):
         context.error(f"CID provided is invalid: {cid_hash}")

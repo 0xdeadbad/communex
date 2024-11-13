@@ -13,7 +13,7 @@ def confirmation(ctx: Context):
     """
     Transfer amount to destination using key
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
 
     if context.confirm("Do you want to proceed?"):
         context.output("Proceeded :P")

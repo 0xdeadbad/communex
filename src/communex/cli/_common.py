@@ -66,7 +66,7 @@ class CliPasswordProvider:
         return password
 
 
-class CustomCtx:
+class CLIContext:
     ctx: ExtendedContext
     settings: ComxSettings
     console: rich.console.Console
@@ -332,7 +332,7 @@ class CustomCtx:
 
     @staticmethod
     def get(ctx: typer.Context):
-        return CustomCtx(
+        return CLIContext(
             ctx = cast(ExtendedContext, ctx),
             settings = ComxSettings()
         )
