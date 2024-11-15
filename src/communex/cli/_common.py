@@ -482,7 +482,7 @@ class CLIContext:
             self.console_err.print()
 
 
-def tranform_network_params(params: NetworkParams):
+def transform_network_params(params: NetworkParams):
     """Transform network params to be human readable."""
     governance_config = params["governance_config"]
     allocation = governance_config["proposal_reward_treasury_allocation"]

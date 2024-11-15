@@ -8,7 +8,7 @@ from typer import Context
 import communex.balance as c_balance
 from communex.cli._common import (
     CLIContext,
-    tranform_network_params,
+    transform_network_params,
 )
 from communex.client import CommuneClient
 from communex.compat.key import (
@@ -60,7 +60,7 @@ def params(ctx: Context):
 
     with context.progress_status("Getting global network params ..."):
         global_params = get_global_params(client)
-    printable_params = tranform_network_params(global_params)
+    printable_params = transform_network_params(global_params)
 
     if context.use_json_output:
         context.output_json(
