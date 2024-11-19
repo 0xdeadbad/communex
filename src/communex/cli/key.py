@@ -9,11 +9,8 @@ from typer import Context
 
 import communex.compat.key as comx_key
 from communex._common import BalanceUnit, format_balance
-from communex.cli._common import (
-    CustomCtx,
-    print_table_from_plain_dict,
-    print_table_standardize,
-)
+from communex.cli._common import CLIContext
+
 from communex.compat.key import (
     classic_store_key,
     local_key_addresses,
@@ -38,7 +35,7 @@ def create(ctx: Context, name: str, password: str = typer.Option(None)):
     """
     Generates a new key and stores it on a disk with the given name.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
 
     keypair = generate_keypair()
     address = keypair.ss58_address
@@ -57,7 +54,7 @@ def regen(
     """
     Stores the given key on a disk. Works with private key or mnemonic.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     # TODO: secret input from env var and stdin
 
     # Determine the input type based on the presence of spaces.
@@ -91,7 +88,7 @@ def show(
     """
     Show information about a key.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
 
     keypair = context.load_key(key, password)
     key_dict = comx_key.to_classic_dict(keypair, path = key)
@@ -106,7 +103,7 @@ def show(
     if context.use_json_output:
         context.output_json(**key_dict)
     else:
-        print_table_from_plain_dict(key_dict, ["Key", "Value"], context.console_err)
+        context.output_table_from_dict(key_dict, ["Key", "Value"])
 
 
 @key_app.command()
@@ -118,7 +115,7 @@ def balances(
     """
     Gets balances of all keys.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     local_keys = local_key_addresses(context.password_manager)
@@ -184,7 +181,7 @@ def balances(
     if context.use_json_output:
         context.output_json(**general_dict)
     else:
-        print_table_standardize(general_dict, context.console)
+        context.output_table_standardized(general_dict)
 
 
 @key_app.command(name = "list")
@@ -194,7 +191,7 @@ def inventory(
     """
     Lists all keys stored on disk.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
 
     key_to_address = local_key_addresses(context.password_manager)
     general_key_to_address: dict[str, str] = cast(
@@ -206,9 +203,7 @@ def inventory(
             **general_key_to_address
         )
     else:
-        print_table_from_plain_dict(
-            general_key_to_address, ["Key", "Address"], context.console_err
-        )
+        context.output_table_from_dict(general_key_to_address, ["Key", "Address"])
 
 
 @key_app.command()
@@ -221,7 +216,7 @@ def stakefrom(
     """
     Gets what keys is key staked from.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     if is_ss58_address(key):
@@ -242,7 +237,7 @@ def stakefrom(
             **result
         )
     else:
-        print_table_from_plain_dict(result, ["Key", "Stake"], context.console_err)
+        context.output_table_from_dict(result, ["Key", "Stake"])
 
 
 @key_app.command()
@@ -255,7 +250,7 @@ def staketo(
     """
     Gets stake to a key.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     if is_ss58_address(key):
@@ -275,7 +270,7 @@ def staketo(
             **result
         )
     else:
-        print_table_from_plain_dict(result, ["Key", "Stake"], context.console_err)
+        context.output_table_from_dict(result, ["Key", "Stake"])
 
 
 @key_app.command()
@@ -295,7 +290,7 @@ def total_free_balance(
     """
     Returns total balance of all keys on a disk
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     local_keys = local_key_addresses(context.password_manager)
@@ -335,7 +330,7 @@ def total_staked_balance(
     """
     Returns total stake of all keys on a disk
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     local_keys = local_key_addresses(context.password_manager)
@@ -376,7 +371,7 @@ def total_balance(
     """
     Returns total tokens of all keys on a disk
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     local_keys = local_key_addresses(context.password_manager)
@@ -406,7 +401,7 @@ def power_delegation(
     """
     Gets power delegation of a key.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
     if key is None:
         action = "enable" if enable else "disable"

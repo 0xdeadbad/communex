@@ -7,11 +7,7 @@ import aiohttp
 import typer
 from typer import Context
 
-from communex.cli._common import (
-    CustomCtx,
-    print_table_from_plain_dict,
-    print_table_standardize,
-)
+from communex.cli._common import CLIContext
 from communex.compat.key import resolve_key_ss58, try_classic_load_key
 from communex.errors import ChainTransactionError
 from communex.misc import IPFS_REGEX, get_map_displayable_subnets
@@ -25,7 +21,7 @@ def list_subnets(ctx: Context):
     """
     Gets subnets.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting subnets ..."):
@@ -39,12 +35,12 @@ def list_subnets(ctx: Context):
         context.output_json(subnets = subnets_with_netuids)
     else:
         for dic in subnets_with_netuids:
-            print_table_from_plain_dict(dic, ["Params", "Values"], context.console_err)
+            context.output_table_from_dict(dic, ["Params", "Values"])
 
 
 @subnet_app.command()
 def distribution(ctx: Context):
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting emission distribution..."):
@@ -75,7 +71,7 @@ def distribution(ctx: Context):
     if context.use_json_output:
         context.output_json(**table_data)
     else:
-        print_table_standardize(table_data, context.console)
+        context.output_table_standardized(table_data)
 
 
 @subnet_app.command()
@@ -84,7 +80,7 @@ def legit_whitelist(ctx: Context):
     Gets the legitimate whitelist of modules for the general subnet 0
     """
 
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting legitimate whitelist ..."):
@@ -93,9 +89,7 @@ def legit_whitelist(ctx: Context):
     if context.use_json_output:
         context.output_json(**whitelist)
     else:
-        print_table_from_plain_dict(
-            whitelist, ["Module", "Recommended weight"], context.console_err
-        )
+        context.output_table_from_dict(whitelist, ["Module", "Recommended weight"])
 
 
 @subnet_app.command()
@@ -103,7 +97,7 @@ def info(ctx: Context, netuid: int):
     """
     Gets subnet info.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status(f"Getting subnet with netuid '{netuid}'..."):
@@ -118,9 +112,7 @@ def info(ctx: Context, netuid: int):
     if context.use_json_output:
         context.output_json(**general_subnet)
     else:
-        print_table_from_plain_dict(
-            general_subnet, ["Params", "Values"], context.console_err
-        )
+        context.output_table_from_dict(general_subnet, ["Params", "Values"])
 
 @subnet_app.command()
 def register(
@@ -129,7 +121,7 @@ def register(
     """
     Registers a new subnet.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
     resolved_key = context.load_key(key, None)
 
@@ -176,7 +168,7 @@ def update(
     """
     Updates a subnet.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
     resolved_key = try_classic_load_key(key)
 
@@ -265,7 +257,7 @@ def propose_on_subnet(
     """
     Adds a proposal to a specific subnet.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
         exit(1)
@@ -273,7 +265,7 @@ def propose_on_subnet(
         ipfs_prefix = "ipfs://"
         cid = ipfs_prefix + cid
 
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
     resolved_key = try_classic_load_key(key)
 
@@ -330,7 +322,7 @@ def submit_general_subnet_application(
     Submits a legitimate whitelist application to the general subnet, netuid 0.
     """
 
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
         exit(1)
@@ -358,7 +350,7 @@ def add_custom_proposal(
     """
     Adds a custom proposal to a specific subnet.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
 
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
@@ -380,7 +372,7 @@ def list_curator_applications(ctx: Context):
     """
     Lists all curator applications.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Querying applications..."):
@@ -475,6 +467,4 @@ def list_curator_applications(ctx: Context):
 
             value["data"] = value_data  # type: ignore
 
-            print_table_from_plain_dict(
-                value, ["Params", "Values"], context.console_err
-            )
+            context.output_table_from_dict(value, ["Params", "Values"])

@@ -1,6 +1,5 @@
 import json
 from dataclasses import dataclass
-from getpass import getpass
 from typing import Any, Callable, Mapping, TypeVar, cast
 
 import rich
@@ -67,7 +66,7 @@ class CliPasswordProvider:
         return password
 
 
-class CustomCtx:
+class CLIContext:
     ctx: ExtendedContext
     settings: ComxSettings
     console: rich.console.Console
@@ -333,161 +332,157 @@ class CustomCtx:
 
     @staticmethod
     def get(ctx: typer.Context):
-        return CustomCtx(
+        return CLIContext(
             ctx = cast(ExtendedContext, ctx),
             settings = ComxSettings()
         )
 
-# Formatting
-def print_table_from_plain_dict(
-    result: Mapping[str, str | int | float | dict[Any, Any] | Ss58Address],
-    column_names: list[str],
-    console: Console,
-) -> None:
-    """
-    Creates a table for a plain dictionary.
-    """
+    def output_table_from_dict(
+        self,
+        result: Mapping[str, str | int | float | dict[Any, Any] | Ss58Address],
+        column_names: list[str]
+    ):
+        """
+        Creates a table for a plain dictionary.
+        """
 
-    table = Table(show_header = True, header_style = "bold magenta")
+        table = Table(show_header = True, header_style = "bold magenta")
 
-    for name in column_names:
-        table.add_column(name, style = "white", vertical = "middle")
+        for name in column_names:
+            table.add_column(name, style = "white", vertical = "middle")
 
-    # Add non-dictionary values to the table first
-    for key, value in result.items():
-        if not isinstance(value, dict):
-            table.add_row(key, str(value))
-    # Add subtables for nested dictionaries.
-    # Important to add after so that the display of the table is nicer.
-    for key, value in result.items():
-        if isinstance(value, dict):
-            subtable = Table(
-                show_header = False,
-                padding=(0, 0, 0, 0),
-                border_style = "bright_black",
-            )
-            for subkey, subvalue in value.items():
-                subtable.add_row(f"{subkey}: {subvalue}")
-            table.add_row(key, subtable)
+        # Add non-dictionary values to the table first
+        for key, value in result.items():
+            if not isinstance(value, dict):
+                table.add_row(key, str(value))
+        # Add subtables for nested dictionaries.
+        # Important to add after so that the display of the table is nicer.
+        for key, value in result.items():
+            if isinstance(value, dict):
+                subtable = Table(
+                    show_header = False,
+                    padding=(0, 0, 0, 0),
+                    border_style = "bright_black",
+                )
+                for subkey, subvalue in value.items():
+                    subtable.add_row(f"{subkey}: {subvalue}")
+                table.add_row(key, subtable)
 
-    console.print(table)
+        self.console_err.print(table)
 
-def print_table_standardize(
-    result: dict[str, list[Any]], console: Console
-) -> None:
-    """
-    Creates a table for a standardized dictionary.
-    """
-    table = Table(show_header = True, header_style = "bold magenta")
+    def output_table_standardized(
+        self,
+        result: dict[str, list[Any]]
+    ) -> None:
+        """
+        Creates a table for a standardized dictionary.
+        """
+        table = Table(show_header = True, header_style = "bold magenta")
 
-    for key in result.keys():
-        table.add_column(key, style = "white")
-    rows = [*result.values()]
-    zipped_rows = [list(column) for column in zip(*rows)]
-    for row in zipped_rows:
-        table.add_row(*row, style = "white")
+        for key in result.keys():
+            table.add_column(key, style = "white")
+        rows = [*result.values()]
+        zipped_rows = [list(column) for column in zip(*rows)]
+        for row in zipped_rows:
+            table.add_row(*row, style = "white")
 
-    console.print(table)
+        self.console_err.print(table)
 
 
-def transform_module_into(
-    to_exclude: list[str],
-    last_block: int,
-    immunity_period: int,
-    modules: list[ModuleInfoWithOptionalBalance],
-    tempo: int,
-):
-    mods = cast(list[dict[str, Any]], modules)
-    transformed_modules: list[dict[str, Any]] = []
-    for mod in mods:
-        module = mod.copy()
-        module_regblock = module["regblock"]
-        module["in_immunity"] = module_regblock + immunity_period > last_block
+    def output_module_information(
+        self,
+        client: CommuneClient,
+        modules: list[ModuleInfoWithOptionalBalance],
+        netuid: int,
+        title: str | None = None,
+    ) -> None:
+        """
+        Prints information about a module.
+        """
 
-        for key in to_exclude:
-            del module[key]
-        module["stake"] = round(from_nano(module["stake"]), 2)
-        module["emission"] = round(from_horus(module["emission"], tempo), 4)
-        if module.get("balance") is not None:
-            module["balance"] = from_nano(module["balance"])
+        def transform_module(
+            to_exclude: list[str],
+            last_block: int,
+            immunity_period: int,
+            modules: list[ModuleInfoWithOptionalBalance],
+            tempo: int,
+        ):
+            mods = cast(list[dict[str, Any]], modules)
+            transformed_modules: list[dict[str, Any]] = []
+            for mod in mods:
+                module = mod.copy()
+                module_regblock = module["regblock"]
+                module["in_immunity"] = module_regblock + immunity_period > last_block
+
+                for key in to_exclude:
+                    del module[key]
+                module["stake"] = round(from_nano(module["stake"]), 2)
+                module["emission"] = round(from_horus(module["emission"], tempo), 4)
+                if module.get("balance") is not None:
+                    module["balance"] = from_nano(module["balance"])
+                else:
+                    # user should not see None values
+                    del module["balance"]
+                transformed_modules.append(module)
+
+            return transformed_modules
+
+        if not modules:
+            return
+
+        # Get the current block number, we will need this to caluclate immunity period
+        block = client.get_block()
+        if block:
+            last_block = block["header"]["number"]
         else:
-            # user should not see None values
-            del module["balance"]
-        transformed_modules.append(module)
+            raise ValueError("Could not get block info")
 
-    return transformed_modules
+        # Get the immunity period on the netuid
+        immunity_period = client.get_immunity_period(netuid)
+        tempo = client.get_tempo(netuid)
 
+        # Transform the module dictionary to have immunity_period
+        table = Table(
+            show_header = True,
+            header_style = "bold magenta",
+            box = box.DOUBLE_EDGE,
+            title = title,
+            caption_style = "chartreuse3",
+            title_style = "bold magenta",
+        )
 
-def print_module_info(
-    client: CommuneClient,
-    modules: list[ModuleInfoWithOptionalBalance],
-    console: Console,
-    netuid: int,
-    title: str | None = None,
-) -> None:
-    """
-    Prints information about a module.
-    """
-    if not modules:
-        return
+        to_exclude = ["stake_from", "last_update", "regblock"]
 
-    # Get the current block number, we will need this to caluclate immunity period
-    block = client.get_block()
-    if block:
-        last_block = block["header"]["number"]
-    else:
-        raise ValueError("Could not get block info")
+        transformed_modules = transform_module(
+            to_exclude, last_block, immunity_period, modules, tempo
+        )
 
-    # Get the immunity period on the netuid
-    immunity_period = client.get_immunity_period(netuid)
-    tempo = client.get_tempo(netuid)
+        sample_mod = transformed_modules[0]
+        for key in sample_mod.keys():
+            # add columns
+            table.add_column(key, style = "white")
 
-    # Transform the module dictionary to have immunity_period
-    table = Table(
-        show_header = True,
-        header_style = "bold magenta",
-        box = box.DOUBLE_EDGE,
-        title = title,
-        caption_style = "chartreuse3",
-        title_style = "bold magenta",
-    )
+        total_stake = 0
+        total_balance = 0
 
-    to_exclude = ["stake_from", "last_update", "regblock"]
-    tranformed_modules = transform_module_into(
-        to_exclude, last_block, immunity_period, modules, tempo
-    )
+        for mod in transformed_modules:
+            total_stake += mod["stake"]
+            if mod.get("balance") is not None:
+                total_balance += mod["balance"]
 
-    sample_mod = tranformed_modules[0]
-    for key in sample_mod.keys():
-        # add columns
-        table.add_column(key, style = "white")
+            row: list[str] = []
+            for val in mod.values():
+                row.append(str(val))
+            table.add_row(*row)
 
-    total_stake = 0
-    total_balance = 0
+        table.caption = "total balance: " + f"{total_balance + total_stake}J"
+        self.console_err.print(table)
 
-    for mod in tranformed_modules:
-        total_stake += mod["stake"]
-        if mod.get("balance") is not None:
-            total_balance += mod["balance"]
-
-        row: list[str] = []
-        for val in mod.values():
-            row.append(str(val))
-        table.add_row(*row)
-
-    table.caption = "total balance: " + f"{total_balance + total_stake}J"
-    console.print(table)
-    for _ in range(3):
-        console.print()
+        for _ in range(3):
+            self.console_err.print()
 
 
-def get_universal_password(ctx: CustomCtx) -> str:
-    ctx.info("Please provide the universal password for all keys")
-    universal_password = getpass()
-    return universal_password
-
-
-def tranform_network_params(params: NetworkParams):
+def transform_network_params(params: NetworkParams):
     """Transform network params to be human readable."""
     governance_config = params["governance_config"]
     allocation = governance_config["proposal_reward_treasury_allocation"]
@@ -509,26 +504,6 @@ def tranform_network_params(params: NetworkParams):
     return general_params
 
 
-T = TypeVar("T")
-V = TypeVar("V")
-
-
-def remove_none_values(data: dict[T, V | None]) -> dict[T, V]:
-    """
-    Removes key-value pairs from a dictionary where the value is None.
-    Works recursively for nested dictionaries.
-    """
-    cleaned_data: dict[T, V] = {}
-    for key, value in data.items():
-        if isinstance(value, dict):
-            cleaned_value = remove_none_values(value)  # type: ignore
-            if cleaned_value is not None:  # type: ignore
-                cleaned_data[key] = cleaned_value
-        elif value is not None:
-            cleaned_data[key] = value
-    return cleaned_data
-
-
 def transform_subnet_params(params: dict[int, SubnetParamsWithEmission]):
     """Transform subnet params to be human readable."""
     params_ = cast(dict[int, Any], params)
@@ -548,3 +523,22 @@ def transform_subnet_params(params: dict[int, SubnetParamsWithEmission]):
         ],
     )
     return display_params
+
+T = TypeVar("T")
+V = TypeVar("V")
+
+
+def remove_none_values(data: dict[T, V | None]) -> dict[T, V]:
+    """
+    Removes key-value pairs from a dictionary where the value is None.
+    Works recursively for nested dictionaries.
+    """
+    cleaned_data: dict[T, V] = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            cleaned_value = remove_none_values(value)  # type: ignore
+            if cleaned_value is not None:  # type: ignore
+                cleaned_data[key] = cleaned_value
+        elif value is not None:
+            cleaned_data[key] = value
+    return cleaned_data

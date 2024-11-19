@@ -2,7 +2,7 @@ import pytest
 from communex.cli.root import app
 from typer import Context, Typer
 from typer.testing import CliRunner, Result
-
+from communex.cli._common import CLIContext
 from tests.conftest import InvokeCli
 
 context_test_app = Typer(no_args_is_help = True)
@@ -13,7 +13,7 @@ def confirmation(ctx: Context):
     """
     Transfer amount to destination using key
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
 
     if context.confirm("Do you want to proceed?"):
         context.output("Proceeded :P")

@@ -3,7 +3,7 @@ from typer import Context
 
 from communex._common import BalanceUnit, format_balance
 from communex.balance import from_nano
-from communex.cli._common import print_module_info, CustomCtx
+from communex.cli._common import CLIContext
 from communex.client import CommuneClient
 from communex.compat.key import local_key_addresses
 from communex.misc import get_map_modules
@@ -30,7 +30,7 @@ def circulating_supply(ctx: Context, unit: BalanceUnit = BalanceUnit.joule):
     """
     Gets the value of all keys on the network, stake + balances
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status(
@@ -56,7 +56,7 @@ def apr(ctx: Context, fee: int = 0):
     Gets the current staking APR on validators.
     The miner reinvest rate & fee are specified in percentages.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     # adjusting the fee to the correct format
@@ -90,7 +90,7 @@ def apr(ctx: Context, fee: int = 0):
 
 @misc_app.command(name = "stats")
 def stats(ctx: Context, balances: bool = False, netuid: int = 0):
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status(
@@ -124,18 +124,18 @@ def stats(ctx: Context, balances: bool = False, netuid: int = 0):
             local_validators = local_validators
         )
     else:
-        print_module_info(
-            client, local_inactive, context.console_err, netuid, "inactive"
+        context.output_module_information(
+            client, local_inactive, netuid, "inactive"
         )
-        print_module_info(client, local_miners, context.console, netuid, "miners")
-        print_module_info(
-            client, local_validators, context.console_err, netuid, "validators"
+        context.output_module_information(client, local_miners, netuid, "miners")
+        context.output_module_information(
+            client, local_validators, netuid, "validators"
         )
 
 
 @misc_app.command(name = "treasury-address")
 def get_treasury_address(ctx: Context):
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting DAO treasury address..."):
@@ -154,7 +154,7 @@ def delegate_rootnet_control(ctx: Context, key: str, target: str):
     """
     Delegates control of the rootnet to a key
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
     resolved_key = context.load_key(key, None)
     ss58_target = context.resolve_key_ss58(target, None)

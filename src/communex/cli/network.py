@@ -7,9 +7,8 @@ from typer import Context
 
 import communex.balance as c_balance
 from communex.cli._common import (
-    CustomCtx,
-    print_table_from_plain_dict,
-    tranform_network_params,
+    CLIContext,
+    transform_network_params,
 )
 from communex.client import CommuneClient
 from communex.compat.key import (
@@ -33,7 +32,7 @@ def last_block(ctx: Context, hash: bool = False):
     """
     Gets the last block
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     info = "number" if not hash else "hash"
@@ -56,21 +55,19 @@ def params(ctx: Context):
     """
     Gets global params
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting global network params ..."):
         global_params = get_global_params(client)
-    printable_params = tranform_network_params(global_params)
+    printable_params = transform_network_params(global_params)
 
     if context.use_json_output:
         context.output_json(
             **printable_params
         )
     else:
-        print_table_from_plain_dict(
-            printable_params, ["Global params", "Value"], context.console_err
-        )
+        context.output_table_from_dict(printable_params, ["Global params", "Value"])
 
 
 @network_app.command()
@@ -78,7 +75,7 @@ def list_proposals(ctx: Context, query_cid: bool = typer.Option(True)):
     """
     Gets proposals
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     with context.progress_status("Getting proposals..."):
@@ -100,11 +97,7 @@ def list_proposals(ctx: Context, query_cid: bool = typer.Option(True)):
             if isinstance(status, dict):
                 batch_proposal["status"] = [*status.keys()][0]
 
-            print_table_from_plain_dict(
-                batch_proposal,
-                [f"Proposal id: {proposal_id}", "Params"],
-                context.console_err,
-            )
+            context.output_table_from_dict(batch_proposal, [f"Proposal id: {proposal_id}", "Params"])
 
 
 @network_app.command()
@@ -134,7 +127,7 @@ def propose_globally(
     """
     Adds a global proposal to the network.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
     resolved_key = try_classic_load_key(key)
 
@@ -180,7 +173,7 @@ def propose_globally(
 
 
 def get_valid_voting_keys(
-    ctx: CustomCtx,
+    ctx: CLIContext,
     client: CommuneClient,
     threshold: int = 25000000000,  # 25 $COMAI
 ) -> dict[str, int]:
@@ -202,7 +195,7 @@ def vote_proposal(
     """
     Casts a vote on a specified proposal. Without specifying a key, all keys on disk will be used.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     if key is None:
@@ -232,7 +225,7 @@ def unvote_proposal(ctx: Context, key: str, proposal_id: int):
     """
     Retracts a previously cast vote on a specified proposal.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     resolved_key = context.load_key(key, None)
@@ -245,7 +238,7 @@ def add_custom_proposal(ctx: Context, key: str, cid: str):
     """
     Adds a custom proposal.
     """
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     if not re.match(IPFS_REGEX, cid):
         context.error(f"CID provided is invalid: {cid}")
         exit(1)
@@ -269,7 +262,7 @@ def set_root_weights(ctx: Context, key: str):
     Command for rootnet validators to set the weights on subnets.
     """
 
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
     rootnet_id = 0
 
@@ -327,7 +320,7 @@ def registration_burn(
     Appraises the cost of registering a module on the Commune network.
     """
 
-    context = CustomCtx.get(ctx)
+    context = CLIContext.get(ctx)
     client = context.com_client()
 
     burn = client.get_burn(netuid)
