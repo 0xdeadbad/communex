@@ -1,11 +1,11 @@
 from typing import Any, Optional, cast
 
-from communex.new_cli.options import Options
+from communex.new_cli.options import Options, OptionsWithHelp
 from ..arguments import Option
 
 DEFAULT_TESTNET_URL = "wss://testnet.api.communeai.net"
 
-class AppOptions(Options):
+class AppOptions(Options, OptionsWithHelp):
     json: bool = False
     testnet: bool = False
     yes_to_all: bool = False
@@ -15,7 +15,6 @@ class AppOptions(Options):
 
     testnet_url: str = DEFAULT_TESTNET_URL
 
-    show_help: bool = False
     show_version: bool = False
 
 
@@ -85,19 +84,6 @@ class NoInteractiveOption(Option):
     def execute(self, value: Optional[Any], options: Options):
         app_options = cast(AppOptions, options)
         app_options.interactive = False
-
-class ShowHelpOption(Option):
-    def __init__(self):
-        super().__init__(
-            short_name = 'h',
-            long_name = 'help',
-            default = None,
-            require_value = False
-        )
-
-    def execute(self, value: Optional[Any], options: Options):
-        app_options = cast(AppOptions, options)
-        app_options.show_help = True
 
 class ShowVersionOption(Option):
     def __init__(self):

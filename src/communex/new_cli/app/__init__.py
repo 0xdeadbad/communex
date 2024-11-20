@@ -3,12 +3,13 @@ import sys
 from communex import __version__
 from typing import Optional
 from communex.client import CommuneClient
+from communex.new_cli.app.subcommand.key import KeyCommand
 from communex.new_cli.command import Command
 
-from .options import DEFAULT_TESTNET_URL, AppOptions, ShowHelpOption, ShowVersionOption, UseNoColorsOption, UseJSONOption, UseTestnetOption, UseYesToAllOption
+from .options import DEFAULT_TESTNET_URL, AppOptions, ShowVersionOption, UseNoColorsOption, UseJSONOption, UseTestnetOption, UseYesToAllOption
 from .console import AppConsole
 from ..arguments import parse_arguments
-from ..options import Option
+from ..options import Option, ShowHelpOption
 
 APP_OPTIONS: list[Option] = [
     UseJSONOption(),
@@ -19,7 +20,9 @@ APP_OPTIONS: list[Option] = [
     ShowVersionOption()
 ]
 
-APP_SUBCOMMANDS: dict[str, Command] = {}
+APP_SUBCOMMANDS: dict[str, Command] = {
+    'key': KeyCommand()
+}
 
 class App(Command):
     options: AppOptions = AppOptions()
@@ -100,7 +103,7 @@ class App(Command):
         self.console.info("[bold]Options:[/bold]", markup = True, highlight = False)
         self.console.info("  [bold]-j[/bold], [bold]--json[/bold]              Enable JSON output", markup = True, highlight = False)
         self.console.info("  [bold]-nc[/bold], [bold]--no-color[/bold]         Forcefully enable colors on consoles that doesn't support them", markup = True, highlight = False)
-        self.console.info("  [bold]-t[/bold], [bold]--test-net=<uri>[/bold]    Use the testnet instead of the main network. (default: {})".format(DEFAULT_TESTNET_URL), markup = True, highlight = False)
+        self.console.info("  [bold]-t[/bold], [bold]--test-net=<uri>[/bold]    Use the testnet instead of the main network. [dim](default: {})[/dim]".format(DEFAULT_TESTNET_URL), markup = True, highlight = False)
         self.console.info("  [bold]-y[/bold], [bold]--yes[/bold]               Use yes on all confirmation prompts", markup = True, highlight = False)
         self.console.info("  [bold]-ni[/bold], [bold]--no-interactive[/bold]   Disable interactive mode", markup = True, highlight = False)
 

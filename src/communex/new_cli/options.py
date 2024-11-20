@@ -1,7 +1,10 @@
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 class Options:
     pass
+
+class OptionsWithHelp:
+    show_help: bool = False
 
 class Option:
     short_name: str
@@ -28,3 +31,16 @@ class Option:
     ) -> Any: pass
 
     def help(self) -> Any: pass
+
+class ShowHelpOption(Option):
+    def __init__(self):
+        super().__init__(
+            short_name = 'h',
+            long_name = 'help',
+            default = None,
+            require_value = False
+        )
+
+    def execute(self, value: Optional[Any], options: Options):
+        options_with_help = cast(OptionsWithHelp, options)
+        options_with_help.show_help = True
