@@ -3,17 +3,11 @@ from typing import Any, Optional
 class Options:
     pass
 
-class CLIOptions(Options):
-    use_json: bool = False
-    use_colors: bool = True
-    use_testnet: bool = False
-    use_yes_to_all: bool = False
-
 class Option:
     short_name: str
     long_name: str
     default: Optional[Any]
-    require_argument: bool
+    require_value: bool
 
     def __init__(
         self,
@@ -21,12 +15,16 @@ class Option:
         long_name: str,
         default: Optional[Any],
         require_value: bool,
-    ): pass
+    ):
+        self.short_name = short_name
+        self.long_name = long_name
+        self.default = default
+        self.require_value = require_value
 
     def execute(
         self,
         value: Optional[Any],
         options: Options
-    ): pass
+    ) -> Any: pass
 
-    def help(self): pass
+    def help(self) -> Any: pass
